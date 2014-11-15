@@ -13,7 +13,7 @@ get_class_counts = helpers.get_class_counts
 get_arguments = helpers.get_arguments
 get_categories = helpers.get_categories
 
-# Load data
+# Select dataset....
 subsets_path = [
 		'../data/arff/subsets/yelp_academic_dataset_user.arff',
 		'../data/arff/subsets/yelp_academic_dataset_business.arff',
@@ -30,24 +30,8 @@ fulldata_path = [
 		'../data/arff/full_data/yelp_academic_dataset_tip.arff',
 ]
 
-def main(args):
-	arff_file = load_data(subsets_path[0])
-	attributes = get_attributes(arff_file['attributes'])
-	dataset = arff_file['data']
-
-	n = 100 # number of times to iterate
-	n_clusters = 8 # number clusters
-
-	# the system can only handle numeric values; convert all strings to numbers
-	for x in dataset:
-		# convert the date to a usable number
-		parts = x[20].split('-')
-		# turn the date into a number & 
-		x[20] = int(parts[0]) + (int(parts[1]) / 12.0)
-		# remove the id_hash from each row
-		del(x[16])
-	
-	# turn array into numpy array so we can apply their statistical methods
+def kmeans_comparison(dataset, n, n_clusters):
+# turn array into numpy array so we can apply their statistical methods
 	X = np.asarray(dataset)
 	# convert data to a scipy.sparse.coo_matrix & then to a csr matrix
 	data_matrix = coo_matrix(X).tocsr()
@@ -69,7 +53,6 @@ def main(args):
 
 	minibatch_kmeans_labels = minibatch_kmeans.labels_
 	minibatch_kmeans_cluster_centers = minibatch_kmeans.cluster_centers_
-
 
 	# Plot results
 	fig = plt.figure(figsize=(8, 3))
@@ -122,6 +105,61 @@ def main(args):
 
 	# display the results
 	plt.show()
+
+
+def business_arff_subset():
+	arff_file = load_data(subsets_path[1])
+	attributes = get_attributes(arff_file['attributes'])
+	dataset = arff_file['data']
+
+	# the system can only handle numeric values; convert all strings to numbers
+	for row in dataset:
+		count = 0
+		for x in row:
+			if x == None or x == 'F':
+				row[count] = 0
+			else:
+				pass
+
+			if x == 'T':
+				row[count] = 0
+			else:
+				pass
+
+			count += 1
+
+	print dataset[0]
+	exit(0)
+	return attributes, dataset
+
+
+def user_arff_subset():
+	arff_file = load_data(subsets_path[0])
+	attributes = get_attributes(arff_file['attributes'])
+	dataset = arff_file['data']
+
+	# the system can only handle numeric values; convert all strings to numbers
+	for x in dataset:
+		# convert the date to a usable number
+		parts = x[20].split('-')
+		# turn the date into a number & 
+		x[20] = int(parts[0]) + (int(parts[1]) / 12.0)
+		# remove the id_hash from each row
+		del(x[16])
+
+	return attributes, dataset
+
+
+def main(args):
+	n = 100 # number of times to iterate
+	n_clusters = 8 # number clusters
+
+	# attributes, dataset = user_arff_subset()
+	attributes, dataset = business_arff_subset()
+
+	# run the algorithm
+	kmeans_comparison(dataset, n, n_clusters)
+
 
 
 if __name__ == "__main__":
