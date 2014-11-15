@@ -112,6 +112,44 @@ def business_arff_subset():
 	attributes = get_attributes(arff_file['attributes'])
 	dataset = arff_file['data']
 
+	business_index = attributes.get('business_id').get('index') #78
+	state_index = attributes.get('state').get('index') # 908
+
+	# convet states to numbers
+	states = {'AZ':1,'WI':2,'NV':3,'NC':4,'GA':5,'CA':6,'ON':7,'EDH':8,'MLN':9,
+		'ELN':10,'FIF':11,'SCB':12,'XGL':13,'NTH':14,'NY':15,'KHL':16,'MN':17,'MA':18}
+
+	# build an object to translate cities to numbers
+	cities = attributes.get('city').get('options')
+	city_index = attributes.get('city').get('index')
+	city = {}
+	count = 1
+	for c in cities:
+		city[c] = count
+		count += 1
+
+	# get indexes for the various hours attributes:
+	sunday_o = attributes.get('hours.Sunday.open').get('index')
+	sunday_c = attributes.get('hours.Sunday.close').get('index')
+
+	monday_o = attributes.get('hours.Monday.open').get('index')
+	monday_c = attributes.get('hours.Monday.close').get('index')
+
+	tuesday_o = attributes.get('hours.Tuesday.open').get('index')
+	tuesday_c = attributes.get('hours.Tuesday.close').get('index')
+
+	wednesday_o = attributes.get('hours.Wednesday.open').get('index')
+	wednesday_c = attributes.get('hours.Wednesday.close').get('index')
+
+	thursday_o = attributes.get('hours.Thursday.open').get('index')
+	thursday_c = attributes.get('hours.Thursday.close').get('index')
+
+	friday_o = attributes.get('hours.Friday.open').get('index')
+	friday_c = attributes.get('hours.Friday.close').get('index')
+
+	saturday_o = attributes.get('hours.Saturday.open').get('index')
+	saturday_c = attributes.get('hours.Saturday.close').get('index')
+
 	# the system can only handle numeric values; convert all strings to numbers
 	for row in dataset:
 		count = 0
@@ -128,8 +166,29 @@ def business_arff_subset():
 
 			count += 1
 
-	print dataset[0]
-	exit(0)
+		# turn hours into something usable
+		sunday_o
+		sunday_c
+		monday_o
+		monday_c
+		tuesday_o
+		tuesday_c
+		wednesday_o
+		wednesday_c
+		thursday_o
+		thursday_c
+		friday_o
+		friday_c
+		saturday_o
+		saturday_c		
+
+		# fix city, state, & business indices (no strings allowed)
+		row[city_index] = city.get(row[city_index])
+		row[state_index] = states.get(row[state_index])
+		row[business_index] = 0
+
+		print dataset[0]
+		exit(0)
 	return attributes, dataset
 
 
@@ -145,7 +204,7 @@ def user_arff_subset():
 		# turn the date into a number & 
 		x[20] = int(parts[0]) + (int(parts[1]) / 12.0)
 		# remove the id_hash from each row
-		del(x[16])
+		x[16] = 0
 
 	return attributes, dataset
 
@@ -164,3 +223,4 @@ def main(args):
 
 if __name__ == "__main__":
 	main(sys.argv)
+
