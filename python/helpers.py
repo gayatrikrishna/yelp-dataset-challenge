@@ -1,5 +1,14 @@
 from lib import arff 
+# import skll
+# import numpy
 
+def get_categories(attributes):
+  categories = []
+  for key, value in attributes.iteritems():
+    categories.append(key) 
+
+  return categories
+  
 def get_arguments(args):
   if len(args) == 5:
     train_set_file = str(args[1])
@@ -114,6 +123,8 @@ def load_data(path = None):
     fp = open(path)
     
   data = arff.load(fp)
+  # data = load_examples(path)
+  # data = skll.data.readers.ARFFReader(fp) #skll
   return data;
 
 

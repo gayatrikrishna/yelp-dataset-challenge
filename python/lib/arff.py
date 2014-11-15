@@ -247,7 +247,7 @@ class BadObject(ArffException):
 def encode_string(s):
     def replace(match):
         return _ESCAPE_DCT[match.group(0)]
-    return u"'" + _RE_ESCAPE.sub(replace, s) + u"'"
+    return str(s)
 
 class Conversor(object):
     '''Conversor is a helper used for converting ARFF types to Python types.'''
@@ -284,7 +284,7 @@ class Conversor(object):
 
     def _string(self, value):
         '''Convert the value to string.'''
-        return unicode(value)
+        return str(value)
 
     def _nominal(self, value):
         '''Verify the value of nominal attribute and convert it to string.'''
@@ -352,7 +352,7 @@ class ArffDecoder(object):
         if not _RE_RELATION.match(v):
             raise BadRelationFormat()
 
-        res = unicode(v.strip('"\''))
+        res = str(v.strip('"\''))
         return res
 
     def _decode_attribute(self, s):
@@ -394,18 +394,18 @@ class ArffDecoder(object):
         name, type_ = m.groups()
 
         # Extracts the final name
-        name = unicode(name.strip('"\''))
+        name = str(name.strip('"\''))
 
         # Extracts the final type
         if _RE_TYPE_NOMINAL.match(type_):
             # If follows the nominal structure, parse with csv reader.
             values = next(csv.reader([type_.strip('{} ')]))
-            values = [unicode(v_.strip(' ').strip('"\'')) for v_ in values]
+            values = [str(v_.strip(' ').strip('"\'')) for v_ in values]
             type_ = values
 
         else:
             # If not nominal, verify the type name
-            type_ = unicode(type_).upper()
+            type_ = str(type_).upper()
             if type_ not in ['NUMERIC', 'REAL', 'INTEGER', 'STRING']:
                 raise BadAttributeType()
 
@@ -608,7 +608,7 @@ class ArffEncoder(object):
         '''
         new_data = []
         for v in data:
-            s = unicode(v)
+            s = str(v)
             for escape_char in _ESCAPE_DCT:
                 if escape_char in s:
                     s = encode_string(s)
