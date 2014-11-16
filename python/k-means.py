@@ -1,5 +1,14 @@
+################################################################################
+#
+# Using K-means & Mini-Batch K-means to discover similarites between users
+# and businesses
+#
+# @author Jason Feriante
+#################################################################################
+
 import sys, time, helpers
 import numpy as np
+# http://matplotlib.org/users/pyplot_tutorial.html
 import matplotlib.pyplot as plt
 from scipy.sparse import coo_matrix
 from sklearn import metrics
@@ -60,7 +69,9 @@ def kmeans_comparison(dataset, n, n_clusters, n_init):
     # convert data to a scipy.sparse.coo_matrix & then to a csr matrix
     X = coo_matrix(X).tocsr()
 
-    print 'Multi Dimension Scaling'
+    print 'Multi-Dimensional Scaling'
+    # Multi-dimensional Scaling (MDS)
+    # http://scikit-learn.org/dev/modules/manifold.html#multi-dimensional-scaling-mds
     multi_dim_scaling = MDS(n_components=2, metric=True, n_init=3, max_iter=100, 
         verbose=0, eps=0.001, random_state=None, dissimilarity='euclidean')
     # this really squashes the data & makes it easier to process & allows us
