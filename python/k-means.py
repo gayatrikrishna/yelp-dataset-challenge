@@ -2,8 +2,11 @@
 #
 # Using K-means & Mini-Batch K-means to discover similarites between users
 # and businesses
-#
+# 
 # @author Jason Feriante
+# 
+# Paper on Clustering Methods For Collaborative Filtering:
+# http://www.aaai.org/Papers/Workshops/1998/WS-98-08/WS98-08-029.pdf
 #################################################################################
 
 # Can we use this for feature extraction? 
@@ -83,6 +86,7 @@ def kmeans_comparison(dataset, n, n_clusters, n_init):
 
 
     # Standard K-Means
+    # http://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html#sklearn.cluster.KMeans
     print 'Standard K-Means'
     k_means = KMeans(n_clusters=n_clusters, init='k-means++', max_iter=n,
         n_init=n_init)
@@ -94,6 +98,7 @@ def kmeans_comparison(dataset, n, n_clusters, n_init):
     k_means_cluster_centers = k_means.cluster_centers_
 
     # Mini-Batch K-Means
+    # http://scikit-learn.org/stable/modules/generated/sklearn.cluster.MiniBatchKMeans.html#sklearn.cluster.MiniBatchKMeans
     print 'Mini-Batch K-Means '
     minibatch_kmeans = MiniBatchKMeans(n_clusters=n_clusters, init='k-means++',
         max_iter=n, n_init=n_init)
