@@ -1,7 +1,7 @@
 cs760 Yelp Dataset Challenge Project
 =====
 
-###Cleaning Data:
+##Cleaning Data:
 The data started in JSON format, but this wasn't usable; the process to convert
 JSON objects into usable, accurate ARFF formatted files was a non-trivial task.
 
@@ -32,3 +32,17 @@ many columns of binary attributes.
 Tips & Reviews had no unknown values. In the case of check-ins we know it's 
 possible to visit a business without "checking in" so no assumptions could be 
 made with this data (empty values were converted to unknowns "?" in ARFF)
+
+##Clustering Data For Collaborative Filtering:
+By discovering groupings among users we may be able to devise more accurate
+review predictors. For example, some people might like fast food chains, 
+others might be vegans, or prefer specific genres, or there may be other factors
+where it might make natural sense to group these people together. For example,
+paying by credit card, family friendly operations, hours of operation, or other 
+various attributes of a business might be appealing to users. Past research has
+demonstrated that clustering can significantly enhance predictive accuracy.
+
+K-Means clustering was chosen because it can be effective with high dimensional
+sparse data matrices. For example, businesses have nearly 1,000 features, and
+most businesses have very little data regarding these features (generally less
+than 3% or 4% of the features are populated with data).
