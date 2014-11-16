@@ -37,7 +37,7 @@ def kmeans_comparison(dataset, n, n_clusters):
 	data_matrix = coo_matrix(X).tocsr()
 
 	# Standard K-Means
-	k_means = KMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=20)
+	k_means = KMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=1)
 	tstamp = time.time()
 	k_means.fit(data_matrix)
 	t_batch = time.time() - tstamp
@@ -46,7 +46,7 @@ def kmeans_comparison(dataset, n, n_clusters):
 	k_means_cluster_centers = k_means.cluster_centers_
 
 	# Mini-Batch K-Means
-	minibatch_kmeans = MiniBatchKMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=20)
+	minibatch_kmeans = MiniBatchKMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=1)
 	tstamp = time.time()
 	minibatch_kmeans.fit(data_matrix)
 	t_mini_batch = time.time() - tstamp
@@ -124,7 +124,8 @@ def clean_business_atttributes(row, nominal_bus_attrs):
 		if row[i] != 0:
 			opt_hashes = nominal_bus_attrs[key].get('opt_hashes')
 			cardinality = nominal_bus_attrs[key].get('cardinality')
-			normalized = opt_hashes.get(row[i]) / cardinality
+			val = opt_hashes.get(row[i])
+			normalized = val / cardinality
 			row[i] = round(normalized, 4)
 		else:
 			pass
@@ -157,12 +158,8 @@ def get_nominal_bus_attrs(attributes):
 
 		nominal_bus_attrs[attr]['opt_hashes'] = opt_hashes
 
-	# for key in nominal_bus_attrs:
-	# 	print nominal_bus_attrs[key].get('opt_hashes')
-	# 	print nominal_bus_attrs[key].get('cardinality')
-	# exit(0)
-
 	return nominal_bus_attrs
+
 
 def business_arff_subset():
 	arff_file = load_data(subsets_path[1])
@@ -276,7 +273,7 @@ def user_arff_subset():
 
 def main(args):
 	n = 100 # number of times to iterate
-	n_clusters = 8 # number clusters
+	n_clusters = 5 # number clusters
 
 	# attributes, dataset = user_arff_subset()
 	attributes, dataset = business_arff_subset()
