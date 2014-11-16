@@ -6,6 +6,8 @@
 # @author Jason Feriante
 #################################################################################
 
+# Can we use this for feature extraction? 
+# http://scikit-learn.org/stable/modules/feature_extraction.html
 import sys, time, helpers
 import numpy as np
 # http://matplotlib.org/users/pyplot_tutorial.html
