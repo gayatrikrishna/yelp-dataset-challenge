@@ -106,6 +106,63 @@ def kmeans_comparison(dataset, n, n_clusters):
 	# display the results
 	plt.show()
 
+def hours_to_float(hours):
+	""" Turn hours into a float number """
+	if(hours == 0):
+		return 0
+	else:
+		parts = hours.split(':')
+		# turn the date into a number & 
+		hours_minutes = int(parts[0]) + (int(parts[1]) / 60.0) 
+		# divide by 24 hours in a day
+		return round(hours_minutes / 24.0, 3) 
+
+def clean_business_atttributes(row, nominal_bus_attrs):
+	""" Normalize business values """
+	for key in nominal_bus_attrs:
+		i = nominal_bus_attrs[key].get('index')
+		if row[i] != 0:
+			opt_hashes = nominal_bus_attrs[key].get('opt_hashes')
+			cardinality = nominal_bus_attrs[key].get('cardinality')
+			normalized = opt_hashes.get(row[i]) / cardinality
+			row[i] = round(normalized, 4)
+		else:
+			pass
+
+	return row
+
+
+def get_nominal_bus_attrs(attributes):
+	""" Figure out which nominal attributes need to get converted to numbers"""
+	nominal_bus_attrs = {}
+	binary_opt = ['F', 'T']
+	for attr in attributes:
+		curr_opt = attributes[attr].get('options')
+		attr_type = attributes[attr].get('type')
+		isHrs = str(attr).find("hours")
+
+		if(curr_opt != binary_opt and isHrs < 0 and attr != 'city' and attr != 'state' and attr_type != 'numeric'):
+			nominal_bus_attrs[attr] = attributes[attr]
+		else:
+			pass
+
+	for attr in nominal_bus_attrs:
+		opt_hashes = {}
+		curr_opts = nominal_bus_attrs[attr].get('options')
+		nominal_bus_attrs[attr]['cardinality'] = float(len(curr_opts))
+		count = 1
+		for opt in curr_opts:
+			opt_hashes[opt] = count
+			count += 1
+
+		nominal_bus_attrs[attr]['opt_hashes'] = opt_hashes
+
+	# for key in nominal_bus_attrs:
+	# 	print nominal_bus_attrs[key].get('opt_hashes')
+	# 	print nominal_bus_attrs[key].get('cardinality')
+	# exit(0)
+
+	return nominal_bus_attrs
 
 def business_arff_subset():
 	arff_file = load_data(subsets_path[1])
@@ -116,11 +173,17 @@ def business_arff_subset():
 	state_index = attributes.get('state').get('index') # 908
 
 	# convet states to numbers
-	states = {'AZ':1,'WI':2,'NV':3,'NC':4,'GA':5,'CA':6,'ON':7,'EDH':8,'MLN':9,
-		'ELN':10,'FIF':11,'SCB':12,'XGL':13,'NTH':14,'NY':15,'KHL':16,'MN':17,'MA':18}
+	states = attributes.get('state').get('options')
+	state_len = float(len(states))
+	state = {}
+	count = 1
+	for s in states:
+		state[s] = count
+		count += 1	
 
 	# build an object to translate cities to numbers
 	cities = attributes.get('city').get('options')
+	cities_len = float(len(cities))
 	city_index = attributes.get('city').get('index')
 	city = {}
 	count = 1
@@ -150,6 +213,8 @@ def business_arff_subset():
 	saturday_o = attributes.get('hours.Saturday.open').get('index')
 	saturday_c = attributes.get('hours.Saturday.close').get('index')
 
+	nominal_bus_attrs = get_nominal_bus_attrs(attributes)
+
 	# the system can only handle numeric values; convert all strings to numbers
 	for row in dataset:
 		count = 0
@@ -160,35 +225,35 @@ def business_arff_subset():
 				pass
 
 			if x == 'T':
-				row[count] = 0
+				row[count] = 1
 			else:
 				pass
 
 			count += 1
 
-		# turn hours into something usable
-		sunday_o
-		sunday_c
-		monday_o
-		monday_c
-		tuesday_o
-		tuesday_c
-		wednesday_o
-		wednesday_c
-		thursday_o
-		thursday_c
-		friday_o
-		friday_c
-		saturday_o
-		saturday_c		
+		# turn business hours into a float
+		row[sunday_o] = hours_to_float(row[sunday_o])
+		row[sunday_c] = hours_to_float(row[sunday_c])
+		row[monday_o] = hours_to_float(row[monday_o])
+		row[monday_c] = hours_to_float(row[monday_c])
+		row[tuesday_o] = hours_to_float(row[tuesday_o])
+		row[tuesday_c] = hours_to_float(row[tuesday_c])
+		row[wednesday_o] = hours_to_float(row[wednesday_o])
+		row[wednesday_c] = hours_to_float(row[wednesday_c])
+		row[thursday_o] = hours_to_float(row[thursday_o])
+		row[thursday_c] = hours_to_float(row[thursday_c])
+		row[friday_o] = hours_to_float(row[friday_o])
+		row[friday_c] = hours_to_float(row[friday_c])
+		row[saturday_o] = hours_to_float(row[saturday_o])
+		row[saturday_c] = hours_to_float(row[saturday_c])
 
 		# fix city, state, & business indices (no strings allowed)
-		row[city_index] = city.get(row[city_index])
-		row[state_index] = states.get(row[state_index])
+		row[city_index] = round(city.get(row[city_index]) / cities_len, 4)
+		row[state_index] = round(state.get(row[state_index]) / state_len, 4)
 		row[business_index] = 0
 
-		print dataset[0]
-		exit(0)
+		row = clean_business_atttributes(row, nominal_bus_attrs)
+
 	return attributes, dataset
 
 

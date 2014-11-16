@@ -1,6 +1,6 @@
 @relation yelp_academic_dataset_business
 
-@attribute 'attributes.Accepts Credit Cards' {T,F}
+@attribute 'attributes.Accepts Credit Cards' {F,T}
 @attribute 'attributes.Accepts Insurance' {F,T}
 @attribute 'attributes.Ages Allowed' {18plus,21plus,allages}
 @attribute attributes.Alcohol {none,full_bar,beer_and_wine}
@@ -16,67 +16,67 @@
 @attribute attributes.Attire {casual,dressy,formal}
 @attribute attributes.BYOB {F,T}
 @attribute attributes.BYOB/Corkage {no,yes_free,yes_corkage}
-@attribute 'attributes.By Appointment Only' {T,F}
+@attribute 'attributes.By Appointment Only' {F,T}
 @attribute attributes.Caters {F,T}
 @attribute 'attributes.Coat Check' {F,T}
 @attribute attributes.Corkage {F,T}
 @attribute attributes.Delivery {F,T}
-@attribute 'attributes.Dietary Restrictions.dairy-free' {T,F}
+@attribute 'attributes.Dietary Restrictions.dairy-free' {F,T}
 @attribute 'attributes.Dietary Restrictions.gluten-free' {F,T}
 @attribute 'attributes.Dietary Restrictions.halal' {F,T}
 @attribute 'attributes.Dietary Restrictions.kosher' {F,T}
 @attribute 'attributes.Dietary Restrictions.soy-free' {F,T}
-@attribute 'attributes.Dietary Restrictions.vegan' {T,F}
-@attribute 'attributes.Dietary Restrictions.vegetarian' {T,F}
+@attribute 'attributes.Dietary Restrictions.vegan' {F,T}
+@attribute 'attributes.Dietary Restrictions.vegetarian' {F,T}
 @attribute 'attributes.Dogs Allowed' {F,T}
-@attribute attributes.Drive-Thru {T,F}
+@attribute attributes.Drive-Thru {F,T}
 @attribute 'attributes.Good For Dancing' {F,T}
-@attribute 'attributes.Good For Groups' {T,F}
-@attribute 'attributes.Good For Kids' {T,F}
+@attribute 'attributes.Good For Groups' {F,T}
+@attribute 'attributes.Good For Kids' {F,T}
 @attribute 'attributes.Good For.breakfast' {F,T}
 @attribute 'attributes.Good For.brunch' {F,T}
 @attribute 'attributes.Good For.dessert' {F,T}
 @attribute 'attributes.Good For.dinner' {F,T}
 @attribute 'attributes.Good For.latenight' {F,T}
-@attribute 'attributes.Good For.lunch' {T,F}
-@attribute 'attributes.Good for Kids' {T,F}
+@attribute 'attributes.Good For.lunch' {F,T}
+@attribute 'attributes.Good for Kids' {F,T}
 @attribute 'attributes.Hair Types Specialized In.africanamerican' {F,T}
 @attribute 'attributes.Hair Types Specialized In.asian' {F,T}
-@attribute 'attributes.Hair Types Specialized In.coloring' {T,F}
-@attribute 'attributes.Hair Types Specialized In.curly' {T,F}
+@attribute 'attributes.Hair Types Specialized In.coloring' {F,T}
+@attribute 'attributes.Hair Types Specialized In.curly' {F,T}
 @attribute 'attributes.Hair Types Specialized In.extensions' {F,T}
-@attribute 'attributes.Hair Types Specialized In.kids' {T,F}
-@attribute 'attributes.Hair Types Specialized In.perms' {T,F}
+@attribute 'attributes.Hair Types Specialized In.kids' {F,T}
+@attribute 'attributes.Hair Types Specialized In.perms' {F,T}
 @attribute 'attributes.Hair Types Specialized In.straightperms' {F,T}
-@attribute 'attributes.Happy Hour' {T,F}
-@attribute 'attributes.Has TV' {T,F}
-@attribute attributes.Music.background_music {T,F}
+@attribute 'attributes.Happy Hour' {F,T}
+@attribute 'attributes.Has TV' {F,T}
+@attribute attributes.Music.background_music {F,T}
 @attribute attributes.Music.dj {F,T}
-@attribute attributes.Music.jukebox {T,F}
+@attribute attributes.Music.jukebox {F,T}
 @attribute attributes.Music.karaoke {F,T}
 @attribute attributes.Music.live {F,T}
 @attribute attributes.Music.playlist {F,T}
 @attribute attributes.Music.video {F,T}
 @attribute 'attributes.Noise Level' {average,quiet,loud,very_loud}
-@attribute 'attributes.Open 24 Hours' {T,F}
-@attribute 'attributes.Order at Counter' {T,F}
+@attribute 'attributes.Open 24 Hours' {F,T}
+@attribute 'attributes.Order at Counter' {F,T}
 @attribute 'attributes.Outdoor Seating' {F,T}
 @attribute attributes.Parking.garage {F,T}
-@attribute attributes.Parking.lot {T,F}
+@attribute attributes.Parking.lot {F,T}
 @attribute attributes.Parking.street {F,T}
 @attribute attributes.Parking.valet {F,T}
 @attribute attributes.Parking.validated {F,T}
 @attribute 'attributes.Payment Types.amex' {F,T}
 @attribute 'attributes.Payment Types.cash_only' {F,T}
 @attribute 'attributes.Payment Types.discover' {F,T}
-@attribute 'attributes.Payment Types.mastercard' {T,F}
-@attribute 'attributes.Payment Types.visa' {T,F}
+@attribute 'attributes.Payment Types.mastercard' {F,T}
+@attribute 'attributes.Payment Types.visa' {F,T}
 @attribute 'attributes.Price Range' numeric
 @attribute attributes.Smoking {outdoor,no,yes}
-@attribute attributes.Take-out {T,F}
+@attribute attributes.Take-out {F,T}
 @attribute 'attributes.Takes Reservations' {F,T}
-@attribute 'attributes.Waiter Service' {T,F}
-@attribute 'attributes.Wheelchair Accessible' {T,F}
+@attribute 'attributes.Waiter Service' {F,T}
+@attribute 'attributes.Wheelchair Accessible' {F,T}
 @attribute attributes.Wi-Fi {free,no,paid}
 @attribute business_id string
 @attribute 'categories.ATV Rentals/Tours' {F,T}
@@ -283,7 +283,7 @@
 @attribute categories.Diving {F,T}
 @attribute 'categories.Divorce & Family Law' {F,T}
 @attribute 'categories.Do-It-Yourself Food' {F,T}
-@attribute categories.Doctors {T,F}
+@attribute categories.Doctors {F,T}
 @attribute 'categories.Dog Parks' {F,T}
 @attribute 'categories.Dog Walkers' {F,T}
 @attribute categories.Dominican {F,T}
@@ -385,7 +385,7 @@
 @attribute 'categories.Hardware Stores' {F,T}
 @attribute categories.Hats {F,T}
 @attribute categories.Hawaiian {F,T}
-@attribute 'categories.Health & Medical' {T,F}
+@attribute 'categories.Health & Medical' {F,T}
 @attribute 'categories.Health Markets' {F,T}
 @attribute 'categories.Health Retreats' {F,T}
 @attribute 'categories.Hearing Aid Providers' {F,T}
@@ -905,7 +905,7 @@
 @attribute 'neighborhoods.Williamson - Marquette' {F,T}
 @attribute 'neighborhoods.Willy St' {F,T}
 @attribute 'neighborhoods.Worthington Park' {F,T}
-@attribute open {T,F}
+@attribute open {F,T}
 @attribute review_count numeric
 @attribute stars numeric
 @attribute state {AZ,WI,NV,NC,GA,CA,ON,EDH,MLN,ELN,FIF,SCB,XGL,NTH,NY,KHL,MN,MA}
