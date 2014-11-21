@@ -549,14 +549,6 @@ def main(args):
     # n_clusters = 50 # number clusters
     n_init = 10
 
-    # # cache all files in memory, but only if we don't have them already. 
-    # # memcache.set("big_daddy_mofo", "a very important value.")
-    blah = memcache.get("big_daddy_mofo")
-    blah2 = memcache.get("ok")
-    print blah
-    print blah2
-    exit(0)
-
     # attributes, dataset = user_arff_subset()
     attributes, dataset = business_arff_subset()
 
