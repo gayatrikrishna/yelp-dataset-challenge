@@ -256,6 +256,7 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes):
     for i in range(n_clusters):
         predict.append({'total_stars':0, 'instance_count':0, 'average_stars':0})
 
+    # this ONLY works if the attributes actually have a stars rating
     stars_row = attributes.get('stars').get('index')
 
     for i in range(len(kmeans_train_labels)):
@@ -283,10 +284,27 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes):
             # print predict[i]
 
     # now run our prediction for test instances:
-    results = minibatch_kmeans.predict(test)
-    print 'results'
-    print len(results)
+    kmeans_test_labels = minibatch_kmeans.predict(test)
     
+    results = []
+    threshold = 0.1 # assume a prediction within 10% is correct
+    correct = 0
+    size = len(test_set)
+    for instance in range(size):
+        cluster = kmeans_test_labels[instance]
+        results.append({ 'actual_stars': test_set[instance][stars_row], 'predicted_stars': predict[cluster]['average_stars'] })
+        difference = abs(test_set[instance][stars_row] - predict[cluster]['average_stars'])
+        if difference < threshold:
+            results[instance]['is_correct'] = True
+            print 'predicted: %f, actual: %f, is_correct: %s' % (results[instance]['predicted_stars'], results[instance]['actual_stars'], 'Yes')
+            correct += 1
+        else:
+            results[instance]['is_correct'] = False
+            print 'predicted: %f, actual: %f, is_correct: %s' % (results[instance]['predicted_stars'], results[instance]['actual_stars'], 'No')
+
+
+    print 'total predictions: %d, correct predictions: %d, percent correct: %f' % (size, correct, correct / float(size))
+
 
 
 def hours_to_float(hours):
