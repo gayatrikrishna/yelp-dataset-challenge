@@ -15,7 +15,7 @@
 
 # Can we use this for feature extraction? 
 # http://scikit-learn.org/stable/modules/feature_extraction.html
-import sys, time, helpers, copy
+import sys, time, helpers, copy, math
 import numpy as np
 # http://matplotlib.org/users/pyplot_tutorial.html
 import matplotlib.pyplot as plt
@@ -26,6 +26,8 @@ from sklearn.cluster import MiniBatchKMeans
 from sklearn.metrics.pairwise import pairwise_distances_argmin
 from sklearn.manifold import MDS #multi-dimensional scaling (flatten things)
 from random import shuffle
+from sklearn.feature_selection import SelectKBest, chi2
+from sklearn import preprocessing
 
 load_data = helpers.load_data
 get_attributes = helpers.get_attributes
@@ -57,7 +59,7 @@ def get_fulldata_path(num):
     return fulldata_path[num]
 
 def get_subset(dataset):
-    shuffle(dataset)
+    # shuffle(dataset)
     if(len(dataset) > 1000):
         size = float(len(dataset)) * 0.02
 
@@ -208,7 +210,7 @@ def kmeans_graph(dataset, n, n_clusters, n_init):
 
 def split_dataset(dataset):
     """Split the dataset into a training_set and test_set"""
-    shuffle(dataset)
+    # shuffle(dataset)
     size = len(dataset)
     test_set_size = int(round(size * .3333, 0))
 
@@ -236,14 +238,44 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes):
     test = coo_matrix(test).tocsr()
     train = coo_matrix(train).tocsr()
 
-    # print test.shape
-    print 'train.shape'
-    print train.shape
+    # build star sets
+    # (this ONLY works if the attributes actually have a stars rating)
+    stars_row = attributes.get('stars').get('index')
+
+    train_star_labels = []
+    for row in range(len(training_set)):
+        train_star_labels.append(training_set[row][stars_row])
+
+    # wrap the list in a list.. because sci-kit wants this
+
+    test_star_labels = []
+    for row in range(len(test_set)):
+        test_star_labels.append(test_set[row][stars_row])
+
+    # build labels that sci-kit understands
+    le = preprocessing.LabelEncoder()
+    train_star_labels = le.fit_transform(train_star_labels)
+    test_star_labels = le.fit_transform(test_star_labels)
+
+    # chi-squared & select-k-best
+    # http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.chi2.html
+    # http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectKBest.html
+    chi_squared = SelectKBest(chi2, k=50)
+    X_train = chi_squared.fit_transform(train, train_star_labels)
+    # X_test = chi_squared.transform(test)
+
+
+    print X_train
+    exit(0)
+    # another possible solution: RandomizedLogisticRegression
+    # http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.RandomizedLogisticRegression.html
 
     # Mini-Batch K-Means
     # http://scikit-learn.org/stable/modules/generated/sklearn.cluster.MiniBatchKMeans.html#sklearn.cluster.MiniBatchKMeans
     print 'Mini-Batch K-Means '
+    # print 'K-Means '
     minibatch_kmeans = MiniBatchKMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=n_init, compute_labels=True)
+    # minibatch_kmeans = KMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=n_init)
     minibatch_kmeans.fit(train)
     kmeans_train_labels = minibatch_kmeans.labels_
     kmeans_train_centers = minibatch_kmeans.cluster_centers_
@@ -255,9 +287,6 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes):
     # each predict object will have average stars; this will serve as our generic prediction.
     for i in range(n_clusters):
         predict.append({'total_stars':0, 'instance_count':0, 'average_stars':0})
-
-    # this ONLY works if the attributes actually have a stars rating
-    stars_row = attributes.get('stars').get('index')
 
     for i in range(len(kmeans_train_labels)):
         # determine which cluster this instance was in
@@ -273,21 +302,26 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes):
             predict[cluster]['total_stars'] += stars
             predict[cluster]['instance_count'] += 1
 
-
     # determine the average stars for each cluster; this becomes our prediction.
+    empty_clusters = 0
     for i in range(n_clusters):
         if(predict[i]['instance_count']) > 0:
             predict[i]['average_stars'] = predict[i]['total_stars'] / float(predict[i]['instance_count'])
             # print predict[i]
         else:
-            pass
+            # print 'cluster #:' + str(i)
+            empty_clusters += 1
             # print predict[i]
 
+    # for p in predict:
+    #     print p
+
+    # exit(0)
     # now run our prediction for test instances:
     kmeans_test_labels = minibatch_kmeans.predict(test)
     
     results = []
-    threshold = 0.1 # assume a prediction within 10% is correct
+    threshold = 0.5 # assume a prediction within 10% is correct
     correct = 0
     size = len(test_set)
     for instance in range(size):
@@ -296,15 +330,14 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes):
         difference = abs(test_set[instance][stars_row] - predict[cluster]['average_stars'])
         if difference < threshold:
             results[instance]['is_correct'] = True
-            print 'predicted: %f, actual: %f, is_correct: %s' % (results[instance]['predicted_stars'], results[instance]['actual_stars'], 'Yes')
+            # print 'predicted: %f, actual: %f, is_correct: %s' % (results[instance]['predicted_stars'], results[instance]['actual_stars'], 'Yes')
             correct += 1
         else:
             results[instance]['is_correct'] = False
-            print 'predicted: %f, actual: %f, is_correct: %s' % (results[instance]['predicted_stars'], results[instance]['actual_stars'], 'No')
+            # print 'predicted: %f, actual: %f, is_correct: %s' % (results[instance]['predicted_stars'], results[instance]['actual_stars'], 'No')
 
-
-    print 'total predictions: %d, correct predictions: %d, percent correct: %f' % (size, correct, correct / float(size))
-
+    print 'predicted: %d, correct: %d, %% correct: %f, empty: %d, clusters: %d' % (size, correct, correct / float(size), empty_clusters, n_clusters - empty_clusters)
+    return correct / float(size)
 
 
 def hours_to_float(hours):
@@ -373,6 +406,8 @@ def business_arff_subset():
 
     business_index = attributes.get('business_id').get('index') #78
     state_index = attributes.get('state').get('index') # 908
+
+    longitude_index = attributes.get('longitude').get('index') # 908
 
     # convet states to numbers
     states = attributes.get('state').get('options')
@@ -456,6 +491,10 @@ def business_arff_subset():
 
         row = clean_business_atttributes(row, nominal_bus_attrs)
 
+        # fix longitude (chi-square allows no negatives)
+        # longitude min is -180
+        row[longitude_index] = row[longitude_index] + 180
+
     # extract a random sample from the dataset since 42k businesses is too much
     # dataset = get_subset(dataset)
 
@@ -484,14 +523,31 @@ def user_arff_subset():
     
     return attributes, dataset
 
+# def feature_selection(dataset, n, n_clusters, n_init, attributes):
+#     # stars CANNOT be removed (or we can't check our prediction)
+#     # anything else is fair game
 
+#     baseline = kmeans_prediction(dataset, n, n_clusters, n_init, attributes)
+
+
+#     # now find a feature set with an improved prediction:
+    
+    
+# use the rule of thumb to get the number of clusters, & use a feature selection
+# algorithm to maximumize predictive accuracy
 def main(args):
     n = 100 # number of times to iterate
-    n_clusters = 20 # number clusters
+    # n_clusters = 50 # number clusters
     n_init = 10
 
     # attributes, dataset = user_arff_subset()
     attributes, dataset = business_arff_subset()
+
+    # assume test set is 1/3 the size of the dataset. this will then also 
+    # determine our ideal number of clusters
+    test_set_instances = 0.3333 * len(dataset)
+    # use the "rule of thumb" to get the right number of clusters
+    n_clusters = int( math.sqrt(test_set_instances / 2) )
 
     # run K-means minibatch
     # kmeans_graph(dataset, n, n_clusters, n_init)
@@ -500,6 +556,8 @@ def main(args):
     # kmeans_graph_comparison(dataset, n, n_clusters, n_init)
     
     kmeans_prediction(dataset, n, n_clusters, n_init, attributes)
+    # feature_selection(dataset, n, n_clusters, n_init, attributes)
+    
 
 
 if __name__ == "__main__":
