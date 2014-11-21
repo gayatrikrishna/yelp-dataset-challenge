@@ -169,7 +169,7 @@ function generate_checkin_csv($filename)
 echo "<pre>starting task\n</pre>";
 // generate_user_csv('yelp_academic_dataset_user.csv');
 // generate_business_csv('yelp_academic_dataset_business.csv');
-// generate_checkin_csv('yelp_academic_dataset_checkin.csv'); // Doesn't seem useful.
-// generate_review_csv('yelp_academic_dataset_review.csv'); // Doesn't seem useful.
-// generate_tip_csv('yelp_academic_dataset_tip.csv'); // Doesn't seem useful.
+// generate_checkin_csv('yelp_academic_dataset_checkin.csv'); 
+// generate_review_csv('yelp_academic_dataset_review.csv'); 
+// generate_tip_csv('yelp_academic_dataset_tip.csv'); 
 echo "<pre>All done! Generated CSV.\n</pre>";
