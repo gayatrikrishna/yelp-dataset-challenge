@@ -262,10 +262,16 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes):
     # http://scikit-learn.org/stable/modules/generated/sklearn.feature_selection.SelectKBest.html
     chi_squared = SelectKBest(chi2, k=50)
     X_train = chi_squared.fit_transform(train, train_star_labels)
+    chi_scores = chi_squared.scores_
+    chi_pvalues = chi_squared.pvalues_
     # X_test = chi_squared.transform(test)
 
-
-    print X_train
+    # train a subset of the data with the better chi_scores
+    
+    print chi_pvalues
+    print 'len(chi_pvalues)'
+    print len(chi_pvalues)
+    # print X_train
     exit(0)
     # another possible solution: RandomizedLogisticRegression
     # http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.RandomizedLogisticRegression.html
