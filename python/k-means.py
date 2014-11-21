@@ -1,7 +1,6 @@
 ################################################################################
 #
-# Using K-means & Mini-Batch K-means to discover similarites between users
-# and businesses
+# Using K-means with Feature Selection Algorithms to predict businesses ratings
 # 
 # @author Jason Feriante
 # 
@@ -9,8 +8,8 @@
 # http://www.aaai.org/Papers/Workshops/1998/WS-98-08/WS98-08-029.pdf
 # 
 # PCA & K-Means both have problems with binary data -- and unfortunately the 
-# majority of our data is binary. That will limit the effectiveness of these
-# methods.
+# majority of our data is binary. That might limit the effectiveness of these
+# methods...
 #################################################################################
 
 # Can we use this for feature extraction? 
