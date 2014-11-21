@@ -206,6 +206,89 @@ def kmeans_graph(dataset, n, n_clusters, n_init):
     # display the results
     plt.show()
 
+def split_dataset(dataset):
+    """Split the dataset into a training_set and test_set"""
+    shuffle(dataset)
+    size = len(dataset)
+    test_set_size = int(round(size * .3333, 0))
+
+    # 1/3 the instances are the test set
+    test_set = []
+    for i in range(test_set_size):
+        test_set.append(dataset[i])
+
+    # 2/3 of the instances are the training set
+    training_set = []
+    for i in range(test_set_size, size):
+        training_set.append(dataset[i])
+
+    return training_set, test_set
+
+
+def kmeans_prediction(dataset, n, n_clusters, n_init, attributes):
+    training_set, test_set = split_dataset(dataset)
+
+    # turn array into numpy array so we can apply their statistical methods
+    test = np.asarray(test_set)
+    train = np.asarray(training_set)
+
+    # convert data to a scipy.sparse.coo_matrix & then to a csr matrix
+    test = coo_matrix(test).tocsr()
+    train = coo_matrix(train).tocsr()
+
+    # print test.shape
+    print 'train.shape'
+    print train.shape
+
+    # Mini-Batch K-Means
+    # http://scikit-learn.org/stable/modules/generated/sklearn.cluster.MiniBatchKMeans.html#sklearn.cluster.MiniBatchKMeans
+    print 'Mini-Batch K-Means '
+    minibatch_kmeans = MiniBatchKMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=n_init, compute_labels=True)
+    minibatch_kmeans.fit(train)
+    kmeans_train_labels = minibatch_kmeans.labels_
+    kmeans_train_centers = minibatch_kmeans.cluster_centers_
+    kmeans_train_inertia = minibatch_kmeans.inertia_
+
+
+    # use the training labels to get the average stars for each business
+    predict = []
+    # each predict object will have average stars; this will serve as our generic prediction.
+    for i in range(n_clusters):
+        predict.append({'total_stars':0, 'instance_count':0, 'average_stars':0})
+
+    stars_row = attributes.get('stars').get('index')
+
+    for i in range(len(kmeans_train_labels)):
+        # determine which cluster this instance was in
+        cluster = kmeans_train_labels[i]
+        stars = training_set[i][stars_row]
+        # print 'stars: ' + str(stars)
+        if(stars == 0):
+            # zero's aren't possible; just here as a precaution.
+            # i.e. this should never happen
+            pass
+        else:
+            # update predictions for this cluster
+            predict[cluster]['total_stars'] += stars
+            predict[cluster]['instance_count'] += 1
+
+
+    # determine the average stars for each cluster; this becomes our prediction.
+    for i in range(n_clusters):
+        if(predict[i]['instance_count']) > 0:
+            predict[i]['average_stars'] = predict[i]['total_stars'] / float(predict[i]['instance_count'])
+            # print predict[i]
+        else:
+            pass
+            # print predict[i]
+
+    # now run our prediction for test instances:
+    results = minibatch_kmeans.predict(test)
+    print 'results'
+    print len(results)
+    
+
+
 def hours_to_float(hours):
     """ Turn hours into a float number """
     if(hours == 0):
@@ -386,18 +469,20 @@ def user_arff_subset():
 
 def main(args):
     n = 100 # number of times to iterate
-    n_clusters = 8 # number clusters
-    n_init = 1
+    n_clusters = 20 # number clusters
+    n_init = 10
 
     # attributes, dataset = user_arff_subset()
     attributes, dataset = business_arff_subset()
 
     # run K-means minibatch
-    kmeans_graph(dataset, n, n_clusters, n_init)
+    # kmeans_graph(dataset, n, n_clusters, n_init)
 
     # compare K-means vs K-means Mini-Batch
     # kmeans_graph_comparison(dataset, n, n_clusters, n_init)
     
+    kmeans_prediction(dataset, n, n_clusters, n_init, attributes)
+
 
 if __name__ == "__main__":
     main(sys.argv)
