@@ -15,6 +15,7 @@
 # Can we use this for feature extraction? 
 # http://scikit-learn.org/stable/modules/feature_extraction.html
 import sys, time, helpers, copy, math
+import pylibmc # use memcached to hold our dataset in memory because it loads way too slow otherwise.
 import numpy as np
 # http://matplotlib.org/users/pyplot_tutorial.html
 import matplotlib.pyplot as plt
@@ -33,6 +34,8 @@ get_attributes = helpers.get_attributes
 get_class_counts = helpers.get_class_counts
 get_arguments = helpers.get_arguments
 get_categories = helpers.get_categories
+
+memcache = pylibmc.Client(["127.0.0.1"], binary=True, behaviors={"tcp_nodelay": True, "ketama": True})
 
 def get_subsets_path(num):
     # Select dataset....
@@ -267,11 +270,12 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes):
 
     # train a subset of the data with the better chi_scores
     
-    print chi_pvalues
-    print 'len(chi_pvalues)'
-    print len(chi_pvalues)
-    # print X_train
-    exit(0)
+    # print chi_pvalues
+    # print 'len(chi_pvalues)'
+    # print len(chi_pvalues)
+    # # print X_train
+    # exit(0)
+
     # another possible solution: RandomizedLogisticRegression
     # http://scikit-learn.org/stable/modules/generated/sklearn.linear_model.RandomizedLogisticRegression.html
 
@@ -312,11 +316,11 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes):
     for i in range(n_clusters):
         if(predict[i]['instance_count']) > 0:
             predict[i]['average_stars'] = predict[i]['total_stars'] / float(predict[i]['instance_count'])
-            # print predict[i]
+            print predict[i]
         else:
             # print 'cluster #:' + str(i)
             empty_clusters += 1
-            # print predict[i]
+            print predict[i]
 
     # for p in predict:
     #     print p
@@ -544,6 +548,14 @@ def main(args):
     n = 100 # number of times to iterate
     # n_clusters = 50 # number clusters
     n_init = 10
+
+    # # cache all files in memory, but only if we don't have them already. 
+    # # memcache.set("big_daddy_mofo", "a very important value.")
+    blah = memcache.get("big_daddy_mofo")
+    blah2 = memcache.get("ok")
+    print blah
+    print blah2
+    exit(0)
 
     # attributes, dataset = user_arff_subset()
     attributes, dataset = business_arff_subset()
