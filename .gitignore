@@ -23,3 +23,6 @@ data/json
 /data/cleaned-csv/yelp_academic_dataset_review.csv
 
 /data/arff/yelp_academic_dataset_review.arff
+/bin
+.classpath
+.project
