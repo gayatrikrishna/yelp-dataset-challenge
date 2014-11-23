@@ -61,17 +61,3 @@ K-Means clustering was chosen because it can be effective with high dimensional
 sparse data matrices. For example, businesses have nearly 1,000 features, and
 most businesses have very little data regarding these features (generally less
 than 3% or 4% of the features are populated with data).
-=======
-To run ARFFFilter.jar
-
-java -jar ARFFFilter.jar <number_of_businesses> <level>
-
-level can take one of these values :
-
-0 - consider the businesses and the users who have rated for those businesses.
-1 - level 0 + all those additional businesses that the users in the current set have rated for.
-2 - level 1 + all those additional users who have rated for the businesses in the current set.
-
-The current files in the repository are generated with the command
-java -jar ARFFFilter.jar 2 1
->>>>>>> 432f398649b14f0d74374045b2d439542f2d6406
