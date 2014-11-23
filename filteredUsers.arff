@@ -1,0 +1,54 @@
+@relation user
+
+@attribute yelping_since string
+@attribute compliments.plain numeric
+@attribute compliments.more numeric
+@attribute elite numeric
+@attribute compliments.cute numeric
+@attribute compliments.writer numeric
+@attribute fans numeric
+@attribute compliments.note numeric
+@attribute compliments.hot numeric
+@attribute compliments.cool numeric
+@attribute compliments.profile numeric
+@attribute average_stars numeric
+@attribute review_count numeric
+@attribute friends numeric
+@attribute user_id string
+@attribute votes.cool numeric
+@attribute compliments.list numeric
+@attribute votes.funny numeric
+@attribute compliments.photos numeric
+@attribute compliments.funny numeric
+@attribute votes.useful numeric
+
+@data
+2008-06-01,12,?,?,3,5,6,21,10,4,?,3.17,129,21,ZYaumz29bl9qHpu-KVtMGA,349,1,510,3,7,634
+2009-12-01,?,?,?,?,?,0,?,?,?,?,3.73,12,?,SvS7NXWG2B2kFoaHaWdGfg,1,?,1,?,?,4
+2011-11-01,?,?,?,?,?,0,?,?,?,?,4.15,13,?,Bld8sdbL48rJzVXo4yMYWA,0,?,1,?,?,12
+2008-05-01,12,2,3,?,14,8,12,10,22,1,3.24,288,34,RvweNJFVkR3ttkWsIBy7nQ,141,?,94,3,1,419
+2011-02-01,1,?,?,?,2,0,1,?,?,?,3.65,225,8,jE5xVugujSaskAoh2DRx3Q,29,?,36,1,1,135
+2009-04-01,1,?,?,?,?,0,?,?,?,?,1.91,13,?,H1kH6QZV7Le4zqTRNxoZow,2,?,1,?,?,17
+2012-09-01,?,?,?,?,?,0,?,?,?,?,3.11,12,?,4ih20jNIEPIkhkh-uxeyAg,0,?,0,?,?,7
+2012-02-01,1,?,?,?,?,0,?,?,1,?,2.55,13,?,KBLW4wJA_fwoWmMhiHRVOA,1,?,4,?,?,12
+2011-07-01,15,4,4,1,26,4,31,17,32,?,3.61,336,20,bfww9ItvUBeRsFQ4UD4eaw,316,1,207,?,2,737
+2008-10-01,1,1,1,?,2,2,?,?,3,?,3.88,79,?,qOYI9O0ecMJ9VaqcM9phNw,22,?,12,?,?,72
+2013-04-01,?,?,?,?,?,0,?,?,?,?,1,1,?,Qrs3EICADUKNFoUq2iHStA,0,?,0,?,?,4
+2010-07-01,?,?,?,?,?,0,?,?,1,?,3.17,29,1,MPKMK36Xp0GuaWaXlUwZ8Q,7,?,27,?,?,62
+2009-07-01,17,3,5,?,2,7,12,6,10,1,4.16,317,17,Au3Qs-AAZEWu2_4gIMwRgw,119,?,121,?,6,383
+2006-12-01,21,5,7,3,14,21,16,24,21,1,3.71,267,14,Xqd0DzHaiyRqVH3WRG7hzg,363,14,117,1,6,462
+2014-07-01,?,?,?,?,?,0,?,?,?,?,5,1,?,LDrpATl7viHfGGeUKzPeZA,0,?,0,?,?,0
+2009-07-01,?,?,?,?,?,0,?,?,?,?,4,7,?,4K7YXIl77EOHlTfSUjLCDw,0,?,1,?,?,0
+2011-05-01,416,10,4,?,101,44,107,102,284,1,3.49,1296,65,zvJCcrpm2yOZrxKffwGQLA,1191,3,1892,50,168,2152
+2009-03-01,1,1,?,?,?,3,1,?,3,?,4.03,101,64,p4ySEi8PEli0auZGBsy6gA,24,?,14,1,?,67
+2009-08-01,?,?,?,?,?,0,?,?,?,?,4.25,11,?,QnhQ8G51XbUpVEyWY2Km-A,4,?,0,?,?,18
+2008-03-01,18,5,3,?,15,12,4,10,22,1,5,523,34,nJ_6gzvBj0mF943eWZ0cSw,217,1,184,5,5,378
+2008-07-01,?,?,?,?,?,1,?,?,?,?,4.5,8,1,zvNimI98mrmhgNOOrzOiGg,3,?,4,?,?,5
+2010-10-01,5,2,?,?,4,4,3,?,2,1,3.32,380,6,-hwN2juKYn-KTxa2WBYLnw,90,?,136,?,3,450
+2011-06-01,?,?,?,?,?,0,?,?,?,?,4,3,?,IXANAoF_6OOFdDwjpGZpQg,1,?,1,?,?,1
+2009-04-01,2,?,?,?,?,0,?,?,?,1,3.78,55,7,MnXcXwr0keJpkIiwuPsOKg,16,?,20,?,?,56
+2010-02-01,13,?,2,?,12,3,4,11,8,?,4.33,77,29,EEYwj6_t1OT5WQGypqEPNg,93,?,33,?,?,143
+2011-01-01,2,?,2,?,?,1,1,1,6,?,3.9,131,7,MDiCwtVo-Aq9cD5bAKd8Lw,22,?,12,?,?,78
+2012-08-01,?,?,?,?,?,0,?,?,?,?,3,1,?,wC8r-m6KHifL6R2i8ok8yg,0,?,0,?,?,2
+2008-02-01,8,1,2,?,11,2,6,5,4,?,3.48,115,11,OtpHvQFGbZ4sONaQAXankg,69,?,52,1,2,179
+2010-07-01,1,?,?,?,?,0,?,?,?,?,3.88,25,?,pgKOL4k5tWCWS9VIc33EoQ,3,?,4,?,?,15
