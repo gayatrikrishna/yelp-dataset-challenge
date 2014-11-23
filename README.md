@@ -1,27 +1,41 @@
 cs760 Yelp Dataset Challenge Project
 =====
 
-##Cleaning Data:
+To run ARFFFilter.jar
+
+java -jar ARFFFilter.jar <number_of_businesses> <level>
+
+level can take one of these values :
+
+0 - consider the businesses and the users who have rated for those businesses.
+1 - level 0 + all those additional businesses that the users in the current set have rated for.
+2 - level 1 + all those additional users who have rated for the businesses in the current set.
+
+The current files in the repository are generated with the command
+java -jar ARFFFilter.jar 2 1
+
+
+
 The data started in JSON format, but this wasn't usable; the process to convert
 JSON objects into usable, accurate ARFF formatted files was a non-trivial task.
 
-Part 1-Convert from nested JSON objects to flattened CSV files
+
 Part 2-Clean CSV data & further flatten nested data where needed to get the data
 compatible with the ARFF format (this part took the longest)
 Part 3-Replace empty values in cases where the data is in fact known where a blank 
 represents an implied false value.
 
-Removing sparsity from the data where possible:
+
 We avoided unknown data where possible during the cleaning process.
 
-### Users (unknown parameters):
-For features such as compliments, it is clear the non-presence of a count meant 
-a zero was implied. We fixed this so an actual zero was included.
+
+
+
 
 ### Business (unknown parameters):
 Attributes: if we don't know whether a business has bathrooms or accepts credit
 cards, not knowing this is true doesn't necessarily tell us anything. Nothing
-could be done in cases like this (the value remains unkonwn unless it's 
+
 explicitly included). 
 Categories: We turned categories into flat binary attributes where only a true 
 or false value is possible. 
@@ -38,7 +52,7 @@ By discovering groupings among users we may be able to devise more accurate
 review predictors. For example, some people might like fast food chains, 
 others might be vegans, or prefer specific genres, or there may be other factors
 where it might make natural sense to group these people together. For example,
-paying by credit card, family friendly operations, hours of operation, or other 
+
 various attributes of a business might be appealing to users. Past research has
 demonstrated that clustering can significantly enhance predictive accuracy.
 
