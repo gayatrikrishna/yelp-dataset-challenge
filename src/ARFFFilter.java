@@ -20,6 +20,7 @@ public class ARFFFilter {
 		filter.getBusinesses(numBusinesses,level);		
 		filter.populateReviews(level);
 		filter.populateUsers(level);
+		filter.combineUserAndReviews();
 	}
 
 }

@@ -3,10 +3,13 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import weka.core.Attribute;
+import weka.core.DenseInstance;
 import weka.core.Instance;
 import weka.core.Instances;
 import weka.core.converters.ArffSaver;
@@ -165,6 +168,49 @@ public class Filter {
 		saver.setFile(new File("./filteredUsers.arff"));
 		saver.writeBatch();
 	
+		
+	}
+	
+	public void combineUserAndReviews() throws IOException{
+		// Read both filtered reviews and users.
+		Instances userData = null;
+		Instances reviewData = null;
+		HashMap<String,Instance> userInstances = new HashMap<String,Instance>();
+		try{
+			BufferedReader br = new BufferedReader(new FileReader("./filteredUsers.arff"));
+			userData = new Instances(br);			
+			br = new BufferedReader(new FileReader("./filteredReviews.arff"));
+			reviewData = new Instances(br);
+			br.close();		
+		}
+		catch(IOException e){
+			e.printStackTrace();
+		}
+		ArrayList<Attribute> allAttributes = new ArrayList<Attribute>();
+		for(int i = 0; i < userData.numAttributes(); ++i){
+			if(i != 14){
+				Attribute attr = userData.attribute(i).copy("user."+userData.attribute(i).name());				
+				allAttributes.add(attr);		
+			}
+		}
+		for(int i = 0; i < reviewData.numAttributes(); ++i){
+			Attribute attr = reviewData.attribute(i).copy("review."+reviewData.attribute(i).name());
+			allAttributes.add(attr);
+		}
+		for(int i = 0; i < userData.size(); ++i){
+			userInstances.put(userData.get(i).stringValue(14), userData.get(i));
+		}
+		Instances combinedDataSet = new Instances("userReviews", allAttributes, reviewData.size());
+		for(int i = 0; i < reviewData.size(); ++i){			
+			Instance userInstance = userInstances.get(reviewData.get(i).stringValue(4));
+			Instance combinedInstance = userInstance.mergeInstance(reviewData.get(i));			
+			combinedInstance.deleteAttributeAt(14);
+			combinedDataSet.add(combinedInstance);
+		}
+		ArffSaver saver = new ArffSaver();
+		saver.setInstances(combinedDataSet);
+		saver.setFile(new File("./UserReviewsData.arff"));
+		saver.writeBatch();
 		
 	}
 
