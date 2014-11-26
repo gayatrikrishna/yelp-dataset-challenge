@@ -21,6 +21,7 @@ public class ARFFFilter {
 		filter.populateReviews(level);
 		filter.populateUsers(level);
 		filter.combineUserAndReviews();
+		filter.generateUserReviewMatrix();
 	}
 
 }
