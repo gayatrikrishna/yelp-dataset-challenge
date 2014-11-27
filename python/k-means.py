@@ -57,7 +57,7 @@ def get_fulldata_path(num):
         '../data/arff/full_data/yelp_academic_dataset_checkin.arff',
         '../data/arff/full_data/yelp_academic_dataset_review.arff',
         '../data/arff/full_data/yelp_academic_dataset_tip.arff',
-        # '../data/arff/UserBusinessReviewMatrix/UserReviewMatrix.arff',
+        '../data/arff/_review_matrix/user_review_matrix_jason_big.arff',
         ]
 
     return fulldata_path[num]
@@ -251,8 +251,6 @@ def get_baseline(data):
         else:
             baseline[i] = 0
     
-    print counts
-    exit(0)
     return baseline
 
 def kmeans_prediction(dataset, n, n_clusters, n_init, attributes, to_predict):
@@ -262,9 +260,9 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes, to_predict):
     train = coo_matrix(dataset).tocsr()
 
     print 'K-Means'
-    k_means = KMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=n_init)
-    # minibatch_kmeans = KMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=n_init)
-    k_means.fit(train)
+    # k_means = KMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=n_init)
+    k_means = MiniBatchKMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=n_init, compute_labels=True, reassignment_ratio=.7)
+    k_means.fit_transform(train)
     kmeans_labels = k_means.labels_
     kmeans_centers = k_means.cluster_centers_
     kmeans_inertia = k_means.inertia_
@@ -297,29 +295,33 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes, to_predict):
 
     # kmeans_labels[0] <--e.g. tells us what cluster each user belongs to
     # now we can build our prediction matrix for each cluster
+    empty_clusters = 0
     for d_set in data_clusters:
-        # for each row in this dataset, make a prediction (based on the average rating)
-        # if there's no rating, use the business average rounded to the nearest star
-        # (since we have nothing else to go on)
-        # we will do this column, by column.
-        col = biz_index # optimization
-        while(col < len(d_set[0])):
-            review_count = 0.0
-            total_stars = 0.0
-            avg_stars = 0.0
-            for row in range(len(d_set)):
-                if(d_set[row][col] > 0):
-                    review_count += 1 
-                    total_stars += d_set[row][col]
+        if(len(d_set) > 0):
+            # for each row in this dataset, make a prediction (based on the average rating)
+            # if there's no rating, use the business average rounded to the nearest star
+            # (since we have nothing else to go on)
+            # we will do this column, by column.
+            col = biz_index # optimization
+            while(col < len(d_set[0])):
+                review_count = 0.0
+                total_stars = 0.0
+                avg_stars = 0.0
+                for row in range(len(d_set)):
+                    if(d_set[row][col] > 0):
+                        review_count += 1 
+                        total_stars += d_set[row][col]
+                    else:
+                        pass
+                    
+                if(review_count > 0):
+                    avg_stars = total_stars / review_count
                 else:
                     pass
-                
-            if(review_count > 0):
-                avg_stars = total_stars / review_count
-            else:
-                pass
-            cluster_predictions[cluster_index][col] = avg_stars
-            col += 1
+                cluster_predictions[cluster_index][col] = avg_stars
+                col += 1
+        else:
+            empty_clusters += 1
 
         cluster_index += 1
 
@@ -328,6 +330,7 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes, to_predict):
 
     results = []
     correct = 0
+
     # we will make 1x prediction per user (that's all); maybe we should make more?
     for i in range(len(to_predict)):
         cluster_index = kmeans_labels[i]
@@ -349,7 +352,8 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes, to_predict):
         results.append({ 'expected_stars': exp_stars, 'predicted_stars': pred_stars })
         difference = abs(exp_stars - pred_stars)
 
-        if difference < 0.5:
+        if difference <= 1:
+        # if difference <= 0.5:
             results[i]['is_correct'] = True
             print 'predicted: %f, actual: %f, is_correct: %s' % (results[i]['predicted_stars'], results[i]['expected_stars'], 'Yes')
             correct += 1
@@ -358,7 +362,7 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes, to_predict):
             print 'predicted: %f, actual: %f, is_correct: %s' % (results[i]['predicted_stars'], results[i]['expected_stars'], 'No')
 
     size = len(dataset)
-    print 'predicted: %d, correct:%d %%:%f, clusters: %d' % (size, correct, correct / float(size), n_clusters)
+    print 'predicted: %d, correct: %d %%:%f, clusters: %d, empty: %d' % (size, correct, correct / float(size), n_clusters, empty_clusters)
     return correct / float(size)
 
 
@@ -456,10 +460,6 @@ def kmeans_business_prediction(dataset, n, n_clusters, n_init, attributes):
             empty_clusters += 1
             print predict[i]
 
-    # for p in predict:
-    #     print p
-
-    # exit(0)
     # now run our prediction for test instances:
     kmeans_test_labels = minibatch_kmeans.predict(test)
     
@@ -666,9 +666,17 @@ def user_arff_subset():
     
     return attributes, dataset
 
+
+def user_reviews_full():
+    return user_reviews_inner(get_fulldata_path(5))
+
 def user_reviews_subset():
+    return user_reviews_inner(get_subsets_path(5))
+
+def user_reviews_inner(path):
     print 'Running user arff subset'
-    arff_file = load_data(get_subsets_path(5))
+
+    arff_file = load_data(path)
     # print 'Running user arff full_data'
     # arff_file = load_data(get_fulldata_path(0))
     attributes = get_attributes(arff_file['attributes'])
@@ -697,7 +705,7 @@ def user_reviews_subset():
             i += 1
 
     # extract a random sample from the dataset since 250k users is too much
-    dataset = get_subset(dataset)
+    # dataset = get_subset(dataset)
 
     return attributes, dataset, to_predict
 
@@ -706,20 +714,18 @@ def user_reviews_subset():
 def main(args):
     n = 100 # number of times to iterate
     # n_clusters = 50 # number clusters
-    n_init = 10
+    n_init = 100
 
     # attributes, dataset = user_arff_subset()
     # attributes, dataset = business_arff_subset()
     attributes, dataset, to_predict = user_reviews_subset()
+    # attributes, dataset, to_predict = user_reviews_full()
 
     # assume test set is 10% the size of the dataset. this will then also 
     # determine our ideal number of clusters
-    test_set_instances = 0.1 * len(dataset)
-    # use the "rule of thumb" to get the right number of clusters
-    n_clusters = int( math.sqrt(test_set_instances / 2) )
 
-    # hardcode clusters since i have so few instances.
-    n_clusters = 5
+    # use the "rule of thumb" to get the right number of clusters
+    n_clusters = int( math.sqrt(len(dataset) / 2) )
 
     # run K-means minibatch
     # kmeans_graph(dataset, n, n_clusters, n_init)
