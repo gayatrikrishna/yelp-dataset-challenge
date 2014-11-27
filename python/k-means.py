@@ -56,6 +56,7 @@ def get_fulldata_path(num):
         '../data/arff/full_data/yelp_academic_dataset_checkin.arff',
         '../data/arff/full_data/yelp_academic_dataset_review.arff',
         '../data/arff/full_data/yelp_academic_dataset_tip.arff',
+        '../data/arff/UserBusinessReviewMatrix/UserReviewMatrix.arff',
         ]
 
     return fulldata_path[num]
