@@ -1,6 +1,6 @@
 ################################################################################
 #
-# Using K-means with Feature Selection Algorithms to predict businesses ratings
+# Using K-means to predict user businesses ratings
 # 
 # @author Jason Feriante
 # 
@@ -19,6 +19,7 @@ import pylibmc # use memcached to hold our dataset in memory because it loads wa
 import numpy as np
 # http://matplotlib.org/users/pyplot_tutorial.html
 import matplotlib.pyplot as plt
+from datetime import datetime
 from scipy.sparse import coo_matrix
 from sklearn import metrics
 from sklearn.cluster import KMeans
@@ -58,6 +59,7 @@ def get_fulldata_path(num):
         '../data/arff/full_data/yelp_academic_dataset_review.arff',
         '../data/arff/full_data/yelp_academic_dataset_tip.arff',
         '../data/arff/_review_matrix/user_review_matrix_jason_big.arff',
+        # '../data/arff/_review_matrix/user_review_matrix_jason_massive.arff',
         ]
 
     return fulldata_path[num]
@@ -76,7 +78,6 @@ def get_subset(dataset):
         return subset
     else:
         return dataset
-
 
 def kmeans_graph_comparison(dataset, n, n_clusters, n_init):
 # turn array into numpy array so we can apply their statistical methods
@@ -253,7 +254,7 @@ def get_baseline(data):
     
     return baseline
 
-def kmeans_prediction(dataset, n, n_clusters, n_init, attributes, to_predict):
+def kmeans_prediction(dataset, n, n_clusters, n_init, attributes, to_predict, baseline):
     # turn array into numpy array so we can apply their statistical methods
     train = np.asarray(dataset)
     # convert data to a scipy.sparse.coo_matrix & then to a csr matrix
@@ -261,7 +262,8 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes, to_predict):
 
     print 'K-Means'
     # k_means = KMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=n_init)
-    k_means = MiniBatchKMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=n_init, compute_labels=True, reassignment_ratio=.7)
+    k_means = KMeans(n_clusters=n_clusters, init='random', max_iter=n, n_init=n_init, n_jobs=4)
+    # k_means = MiniBatchKMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=n_init, compute_labels=True, reassignment_ratio=.7)
     k_means.fit_transform(train)
     kmeans_labels = k_means.labels_
     kmeans_centers = k_means.cluster_centers_
@@ -325,9 +327,6 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes, to_predict):
 
         cluster_index += 1
 
-    # the baseline is the universal average
-    baseline = get_baseline(dataset)
-
     results = []
     correct = 0
 
@@ -355,11 +354,11 @@ def kmeans_prediction(dataset, n, n_clusters, n_init, attributes, to_predict):
         if difference <= 1:
         # if difference <= 0.5:
             results[i]['is_correct'] = True
-            print 'predicted: %f, actual: %f, is_correct: %s' % (results[i]['predicted_stars'], results[i]['expected_stars'], 'Yes')
+            # print 'predicted: %f, actual: %f, is_correct: %s' % (results[i]['predicted_stars'], results[i]['expected_stars'], 'Yes')
             correct += 1
         else:
             results[i]['is_correct'] = False
-            print 'predicted: %f, actual: %f, is_correct: %s' % (results[i]['predicted_stars'], results[i]['expected_stars'], 'No')
+            # print 'predicted: %f, actual: %f, is_correct: %s' % (results[i]['predicted_stars'], results[i]['expected_stars'], 'No')
 
     size = len(dataset)
     print 'predicted: %d, correct: %d %%:%f, clusters: %d, empty: %d' % (size, correct, correct / float(size), n_clusters, empty_clusters)
@@ -421,7 +420,7 @@ def kmeans_business_prediction(dataset, n, n_clusters, n_init, attributes):
     # http://scikit-learn.org/stable/modules/generated/sklearn.cluster.MiniBatchKMeans.html#sklearn.cluster.MiniBatchKMeans
     print 'Mini-Batch K-Means '
     # print 'K-Means '
-    minibatch_kmeans = MiniBatchKMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=n_init, compute_labels=True)
+    minibatch_kmeans = MiniBatchKMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=n_init, compute_labels=True, max_no_improvement=20)
     # minibatch_kmeans = KMeans(n_clusters=n_clusters, init='k-means++', max_iter=n, n_init=n_init)
     minibatch_kmeans.fit(train)
     kmeans_train_labels = minibatch_kmeans.labels_
@@ -662,7 +661,7 @@ def user_arff_subset():
         x[16] = 0
 
     # extract a random sample from the dataset since 250k users is too much
-    dataset = get_subset(dataset)
+    # dataset = get_subset(dataset)
     
     return attributes, dataset
 
@@ -687,6 +686,30 @@ def user_reviews_inner(path):
     to_predict = []
     for row in dataset:
         i = 0
+        #0 yelping_since string
+        date = datetime.strptime(row[0], '%Y-%m-%d')
+        row[0] = time.mktime(date.timetuple())
+        #1 compliments.plain numeric
+        #2 compliments.more numeric
+        #3 elite numeric
+        #4 compliments.cute numeric
+        #5 compliments.writer numeric
+        #6 fans numeric
+        #7 compliments.note numeric
+        #8 compliments.hot numeric
+        #9 compliments.cool numeric
+        #10 compliments.profile numeric
+        #11 average_stars numeric
+        #12 review_count numeric
+        #13 friends numeric
+        #14 user_id string
+        row[14] = 0
+        #15 votes.cool numeric
+        #16 compliments.list numeric
+        #17 votes.funny numeric
+        #18 compliments.photos numeric
+        #19 compliments.funny numeric
+        #20 votes.useful numeric
         while(i < biz_index):
             row[i] = 0
             i += 1
@@ -714,7 +737,7 @@ def user_reviews_inner(path):
 def main(args):
     n = 100 # number of times to iterate
     # n_clusters = 50 # number clusters
-    n_init = 100
+    n_init = 20
 
     # attributes, dataset = user_arff_subset()
     # attributes, dataset = business_arff_subset()
@@ -733,8 +756,18 @@ def main(args):
     # compare K-means vs K-means Mini-Batch
     # kmeans_graph_comparison(dataset, n, n_clusters, n_init)
     
+    # select features; 0 to 20 (the rest -- reviews, are necessary)
     # kmeans_business_prediction(dataset, n, n_clusters, n_init, attributes)
-    kmeans_prediction(dataset, n, n_clusters, n_init, attributes, to_predict)
+
+    # the baseline is the universal average
+    baseline = get_baseline(dataset)
+
+    accuracy = 0
+    for i in range(10):
+        accuracy += kmeans_prediction(dataset, n, n_clusters, n_init, attributes, to_predict, baseline)
+
+    print "Average accuracy: %.2f%%" % ((100 * accuracy) / 10.0)
+    
     # feature_selection(dataset, n, n_clusters, n_init, attributes)
     
 
