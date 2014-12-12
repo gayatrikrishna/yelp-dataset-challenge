@@ -149,7 +149,7 @@ def update(V, W, H, WH, V_div_WH):
     return W, H, WH, V_div_WH
 
 
-def nmf(V, R, iterations=100):
+def nmf(V, R, iterations=10):
     """ 
         --- Non-Negative Matrix Factorization ---
         -V is the NxM matrix to factor, where N is the number of customers
@@ -182,10 +182,10 @@ def nmf(V, R, iterations=100):
 
         kbdivergence = ((V * np.log(V_div_WH)) - V + WH).sum() # eq3
         # debug
-        # if (i % 10 == 0):
-        #     print "At iteration %d, the Kullback-Liebler divergence is %.8f" % (i, kbdivergence)
-        # else:
-        #     pass
+        if (i % 10 == 0):
+            print "At iteration %d, the Kullback-Liebler divergence is %.8f" % (i, kbdivergence)
+        else:
+            pass
 
     return W, H
 
@@ -214,38 +214,87 @@ def get_baselines(dataset):
         else:
             biz_avgs[i] = (float(biz_avgs[i]) / biz_counts[i]) - Vexpec
 
-    # get user averages; there will always be at least one rating
+    # get user averages; there should always be at least one rating
+    cold_start_count = 0
     user_avgs = [0] * len(dataset)
+    cold_start_rows = []
     for i in range(len(dataset)):
-        # needs to consider business average which I don't have.
-        user_avgs[i] = (float(V[i].sum()) / np.count_nonzero(V[i])) - Vexpec
+        nz_count = np.count_nonzero(V[i])
+        if(nz_count > 0):
+            # needs to consider business average which I don't have.
+            user_avgs[i] = (float(V[i].sum()) / np.count_nonzero(V[i])) - Vexpec
+        else:
+            user_avgs[i] = 0 # we know nothing about this user; they had zero test-set ratings
+            cold_start_count += 1
+            cold_start_rows.append(i)
 
     # combine our results to populate a baseline prediction
     for i in range(len(dataset)):
         for j in range(len(dataset[0])):
             if(V[i][j] == 0):
                 # fill it with the expected value...
-                V[i][j] = Vexpec + biz_avgs[j] + user_avgs[i]
-                if(V[i][j] > 5):
-                    V[i][j] = 5
-                else:
-                    pass
+                baseline_predict = Vexpec + biz_avgs[j] + user_avgs[i]
+                V[i][j] = round(baseline_predict, 4)
+            else:
+                # we already had a real value; don't change it...
+                pass
 
-                if(V[i][j] < 1):
-                    V[i][j] = 1
-                else:
-                    pass
+                # if(V[i][j] > 5):
+                #     V[i][j] = 5
+                # else:
+                #     pass
 
-    return V
+                # if(V[i][j] < 1):
+                #     V[i][j] = 1
+                # else:
+                #     pass
+
+    cold_start_percent = (cold_start_count * 1.0) / len(dataset)
+
+    return V, cold_start_percent, cold_start_rows
+
+def split_maxtrix(dataset, t_height=0.25, t_width=0.4):
+    """ t_height: test set height, t_width: test set width """
+    """ Split our dataset into a 90/10 learning training set """
+    """ Withold 40 percent of the ratings for 25 percent of the users """
+    """ (a 10 percent trainingset) """
+    trainingset = copy.deepcopy(dataset)
+    test_size = int(round(t_height * float(len(dataset))))
+    num_cols = int(round(t_width * (len(dataset[0]))))
+
+    # build predictions & remove testset from trainingset
+    testset = []
+    predict_count = 0
+    for i in range(test_size):
+        row = []
+        for j in range(num_cols):
+            val = dataset[i][j]
+            row.append(val)
+            # remove the data from trainingset
+            trainingset[i][j] = 0
+            if(val > 0): 
+                predict_count += 1
+            else:
+                pass
+        # add our row....                
+        testset.append(row)
+
+    return trainingset, testset, predict_count
 
 def main(args):
+    # attributes, dataset = user_reviews_full()
     attributes, dataset = user_reviews_subset()
 
-    # XXXXXXXXXXXXXXXXXXXX NOTE TO SELF XXXXXXXXXXXXXXXXXXXXXXXXX
-    # maybe i should try a _nls_subproblem approach? (non-negative least squares)
+    t_height = 0.25
+    t_width = 0.4
+    normalize = 1.0/20.0
 
-    # attributes, dataset = user_reviews_full()
-    # baseline, counts = get_baseline(dataset)
+    trainingset, testset, predict_count = split_maxtrix(dataset, t_height, t_width)
+
+    testset = np.asarray(testset)
+
+    # turn array into numpy array so we can apply their statistical methods
+    V, cold_start_percent, cold_start_rows = get_baselines(trainingset)
 
     # NMF definition & performance:
     # http://arxiv.org/pdf/1205.3193.pdf <--NMF performed best on sparse data.
@@ -263,28 +312,15 @@ def main(args):
     # (learning from incomplete ratings)
     # http://www.siam.org/meetings/sdm06/proceedings/059zhangs2.pdf
 
-    # turn array into numpy array so we can apply their statistical methods
-    V = get_baselines(dataset)
-
-    # # initialize empty values to average
-    # sumx = V.sum()
-    # count = np.count_nonzero(V)
-    # print sumx
-    # print count
-    # print sumx / count
-    # exit(0)
-    
     # convert data to a scipy.sparse.coo_matrix & then to a csr matrix
     # V = coo_matrix(V).tocsr()
     # V = np.arange(0.01,1.01,0.01).reshape(10,10)
 
-    # print type(V)
-    # exit(0)
     W, H = nmf(V, 30)
     # W, H = nmf(V)
     X = W.dot(H)
-    print X
-    print X.shape
+    # print X.tolist()
+    # print X.shape
     exit(0)
 
 
