@@ -1,0 +1,57 @@
+@relation yelp_academic_dataset_review_training
+@attribute business_id string
+@attribute user_id string
+@attribute stars numeric
+
+@data
+cNAWiLM4dR7D2nwwJ7nC,BLW4wJA_fwoWmMhiHRVO,4.0
+cNAWiLM4dR7D2nwwJ7nC,vJCcrpm2yOZrxKffwGQL,4.0
+cNAWiLM4dR7D2nwwJ7nC,E5xVugujSaskAoh2DRx3,5.0
+cNAWiLM4dR7D2nwwJ7nC,nhQ8G51XbUpVEyWY2Km-,5.0
+wUE5GmEO-sH1FuwJgKBl,4ySEi8PEli0auZGBsy6g,4.0
+wUE5GmEO-sH1FuwJgKBl,Yaumz29bl9qHpu-KVtMG,4.0
+wUE5GmEO-sH1FuwJgKBl,EYwj6_t1OT5WQGypqEPN,4.0
+wUE5GmEO-sH1FuwJgKBl,DiCwtVo-Aq9cD5bAKd8L,5.0
+wUE5GmEO-sH1FuwJgKBl,ld8sdbL48rJzVXo4yMYW,5.0
+wUE5GmEO-sH1FuwJgKBl,XANAoF_6OOFdDwjpGZpQ,5.0
+wUE5GmEO-sH1FuwJgKBl,DrpATl7viHfGGeUKzPeZ,5.0
+GykseHzyS5xAMWoN6YUq,lvmjewvLCwnbfwNoE-Xy,5.0
+GykseHzyS5xAMWoN6YUq,T1F97KjezOZlIboOq7Kr,5.0
+GykseHzyS5xAMWoN6YUq,2_xNGF6nhsOoD2NpOa5d,5.0
+GykseHzyS5xAMWoN6YUq,ViJPCbqIAIq5HPy7anIE,1.0
+GykseHzyS5xAMWoN6YUq,4hxgsxvNmjv8dxIaI7Vy,4.0
+GykseHzyS5xAMWoN6YUq,jGh54rTqVn0ECKroIXwY,4.0
+GykseHzyS5xAMWoN6YUq,6PKBSi09-Qi0v3T9IZwC,2.0
+GykseHzyS5xAMWoN6YUq,A_oXZdiMqZqjxNp7gZwe,4.0
+RKJF43s9-3jG9Lgx4zOD,e3hmkbr-pVaiqiCnxInQ,5.0
+RKJF43s9-3jG9Lgx4zOD,_vRCjYILaY9PYWevubPw,4.0
+RKJF43s9-3jG9Lgx4zOD,sklUYBnk7LxzM-11yPUP,5.0
+LctHIA1AxmsgOuu4dM6V,YhKsAUQaaRGgdgcZC5XA,3.0
+LctHIA1AxmsgOuu4dM6V,CqjsTEPFLfjdCxI2Zq1W,1.0
+LctHIA1AxmsgOuu4dM6V,SRCc7ip7DqRnUT0gJ6q_,1.0
+LctHIA1AxmsgOuu4dM6V,VWIxcfkjxri5UruYABkr,1.0
+LctHIA1AxmsgOuu4dM6V,wmiM7bsZZLv_WgiTXgRb,1.0
+LctHIA1AxmsgOuu4dM6V,YYVQMpKwrhjdLMY3q1EX,1.0
+W2WeP2Hp20tq0RG1NFko,plaWX2Ud7lCGDfcScy9B,1.0
+W2WeP2Hp20tq0RG1NFko,ZZoUCBoxdKGtiY9x-hnK,1.0
+W2WeP2Hp20tq0RG1NFko,T2Dr5fnsWDmudQM1Hhy7,5.0
+5p9Xg358BezJyk1wqzzy,cNncIDyL4RRRVGFUi4ck,3.0
+dAdANPNOcvUtoFgcaY9K,Dk2XvjJlK8fsiL6C1HpE,3.0
+dAdANPNOcvUtoFgcaY9K,Yaumz29bl9qHpu-KVtMG,4.0
+dAdANPNOcvUtoFgcaY9K,72YMW4JGX3NkSNZAW7Be,4.0
+dAdANPNOcvUtoFgcaY9K,e-liuNOw35td5AU8uOG6,4.0
+dAdANPNOcvUtoFgcaY9K,ueYG7VZjO5HjJz9DD3Ys,4.0
+dAdANPNOcvUtoFgcaY9K,SlKnryLlnD3mvmG6DIyC,3.0
+dAdANPNOcvUtoFgcaY9K,VW_8tSvxMgIOaTeOvtte,4.0
+dAdANPNOcvUtoFgcaY9K,L7XG25E24mErfg9sZ_-w,4.0
+dAdANPNOcvUtoFgcaY9K,v6lq527bHVW1EbrqzZXa,5.0
+dAdANPNOcvUtoFgcaY9K,7dYsjvl3b66gL4KhOjVI,5.0
+dAdANPNOcvUtoFgcaY9K,mSPy_RTZArCirAqWsVP6,4.0
+dAdANPNOcvUtoFgcaY9K,WEDVOMa0X4Qhw4wropxi,5.0
+dAdANPNOcvUtoFgcaY9K,MMx7b5IBhWtm4EKKL8un,4.0
+dAdANPNOcvUtoFgcaY9K,yLRVxHgnCQ5taPJ4cl0-,3.0
+dAdANPNOcvUtoFgcaY9K,hCE1r5RPWN3Q0GveOx6k,4.0
+dAdANPNOcvUtoFgcaY9K,xf2ECTRftPV4bzK4mGYE,4.0
+dAdANPNOcvUtoFgcaY9K,BBarVpwP94MsS63W4KKZ,5.0
+dAdANPNOcvUtoFgcaY9K,eI1yQImDR-1a55zVZZPH,4.0
+dAdANPNOcvUtoFgcaY9K,KBS0S0l_PZ_iEaKw8W9b,4.0
