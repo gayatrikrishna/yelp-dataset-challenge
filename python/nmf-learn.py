@@ -149,7 +149,7 @@ def update(V, W, H, WH, V_div_WH):
     return W, H, WH, V_div_WH
 
 
-def factorize(V, R, iterations=100):
+def factorize(V, L, iterations=100):
     """ 
         --- Non-Negative Matrix Factorization ---
         -V is the NxM matrix to factor, where N is the number of customers
@@ -157,7 +157,7 @@ def factorize(V, R, iterations=100):
         -W is tall & skinny (compared to V)
         -H is short & wide  (compared to V)
         -Based on local divergence optima, we will decompose V into WH
-        -R is some number, smaller than N or M, used to compress the matrix (latent factors)
+        -L latent factors / compression
     """
 
     Vexpec = V.mean() #expected value of a matrix entry
@@ -165,12 +165,14 @@ def factorize(V, R, iterations=100):
     N, M = V.shape
 
     # initialize H to some random starting point
-    H = np.random.random(R * M)
-    H = H.reshape(R, M) * Vexpec
+    H = np.random.random(L * M)
+    # reshape the matrix to the dimensions NMF requires
+    H = H.reshape(L, M) * Vexpec
 
     # initialize W to some random starting point
-    W = np.random.random(N * R)
-    W = W.reshape(N, R) * Vexpec
+    W = np.random.random(N * L)
+    # reshape the matrix to the dimensions NMF requires
+    W = W.reshape(N, L) * Vexpec
 
     WH = W.dot(H)
     V_div_WH = V / WH
@@ -266,7 +268,7 @@ def get_baselines(dataset, normalize):
     # normalize our data
     arr_min = np.amin(V)
 
-    const = abs(arr_min) + 0.0001 # avoid zero values
+    const = abs(arr_min) + 0.000001 # avoid zero values
     for i in range(len(dataset)):
         for j in range(len(dataset[0])):
             V[i][j] += const
@@ -304,13 +306,33 @@ def split_maxtrix(dataset, t_height=0.25, t_width=0.4):
 
     return trainingset, testset, predict_count
 
+def display_results(testset, predict, is_baseline = False):
+    numTest = 0
+    totalSum = 0.0
+    totalMAE = 0.0 # mean absolute error
+    for i in range(len(testset)):
+        for j in range(len(testset[0])):
+            if(testset[i][j] > 0):
+                expected = testset[i][j]
+                predicted = predict[i][j]
+
+                totalSum += pow(expected - predicted, 2)
+                totalMAE += abs(expected - predicted)
+                numTest += 1
+
+    if(is_baseline != True):
+        print "RMSE = %f MAE = %f " % (math.sqrt(totalSum/numTest), totalMAE/numTest)
+    else:
+        print "baseline: RMSE = %f MAE = %f " % (math.sqrt(totalSum/numTest), totalMAE/numTest)
+
 def main(args):
     # attributes, dataset = user_reviews_full()
     attributes, dataset = user_reviews_subset()
 
     t_height = 0.25
     t_width = 0.4
-    normalize = 1.0/4000.0
+    normalize = 1.0/100.0
+    # normalize = 1.0
     latent_factors = 30
     iterations = 100
 
@@ -321,6 +343,7 @@ def main(args):
     # turn array into numpy array so we can apply their statistical methods
     V, cold_start_percent, cold_start_rows, const = get_baselines(trainingset, normalize)
 
+    baseline = copy.deepcopy(V)
     old_avg = V.mean()
     # NMF definition & performance:
     # http://arxiv.org/pdf/1205.3193.pdf <--NMF performed best on sparse data.
@@ -344,22 +367,17 @@ def main(args):
 
     predict = nmf(V, latent_factors, iterations, const, normalize)
 
+    # display baseline results
+    display_results(testset, baseline, is_baseline=True)
+
+    # display overall results
+    display_results(testset, predict)
+
     # compare predictions to expected...
     # this is a subset of the parent matrix... compare the overlapping values
     # where a value exists in the testset
-    for i in range(len(testset)):
-        for j in range(len(testset[0])):
-            if(testset[i][j] > 0):
-                expected = testset[i][j]
-                predicted = predict[i][j]
-                
-                print 'expected'
-                print expected
-                print 'predicted'
-                print predicted
-                exit(0)
 
-    exit(0)
+    # compare to baseline.......
 
 
 
