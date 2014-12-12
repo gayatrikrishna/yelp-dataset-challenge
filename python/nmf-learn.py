@@ -15,6 +15,7 @@ import numpy as np
 from datetime import datetime
 from scipy.sparse import coo_matrix
 from random import shuffle
+from random import randint
 np.random.seed(0) #@todo remove this later.......
 
 load_data = helpers.load_data
@@ -67,8 +68,7 @@ def get_baseline(data):
 
     for i in range(len(data[0])):
         if(counts[i] > 0):
-            # round up to the nearest whole number
-            baseline[i] = round(sums[i] / counts[i], 2)
+            baseline[i] = sums[i] / float(counts[i])
         else:
             baseline[i] = 0
     
@@ -149,7 +149,7 @@ def update(V, W, H, WH, V_div_WH):
     return W, H, WH, V_div_WH
 
 
-def nmf(V, R, iterations=10):
+def factorize(V, R, iterations=100):
     """ 
         --- Non-Negative Matrix Factorization ---
         -V is the NxM matrix to factor, where N is the number of customers
@@ -157,14 +157,12 @@ def nmf(V, R, iterations=10):
         -W is tall & skinny (compared to V)
         -H is short & wide  (compared to V)
         -Based on local divergence optima, we will decompose V into WH
-        -R is some number, smaller than N or M, used to compress the matrix 
+        -R is some number, smaller than N or M, used to compress the matrix (latent factors)
     """
 
     Vexpec = V.mean() #expected value of a matrix entry
 
     N, M = V.shape
-
-    # R = min(N, M) - 1 # make R slightly less than our smallest number
 
     # initialize H to some random starting point
     H = np.random.random(R * M)
@@ -182,15 +180,34 @@ def nmf(V, R, iterations=10):
 
         kbdivergence = ((V * np.log(V_div_WH)) - V + WH).sum() # eq3
         # debug
-        if (i % 10 == 0):
-            print "At iteration %d, the Kullback-Liebler divergence is %.8f" % (i, kbdivergence)
-        else:
-            pass
+        # print "At iteration %d, the Kullback-Liebler divergence is %.8f" % (i, kbdivergence)
 
     return W, H
 
+def nmf(V, latent_factors, iterations=100, const=0, normalize=0):
+    # factorize into W & H
+    W, H = factorize(V, latent_factors, iterations)
+    
+    # get the dotproduct with our predictions... 
+    X = W.dot(H)
+
+    N, M = X.shape
+    # X = X.tolist()
+    for i in range(N):
+        for j in range(M):
+            X[i][j] = (X[i][j] / normalize) - const
+            if(X[i][j] > 5):
+                X[i][j] = 5
+            elif(X[i][j] < 1):
+                X[i][j] = 1
+            else:
+                pass
+
+    return X
+
+
 # get a matrix with our baseline estimates built-in
-def get_baselines(dataset):
+def get_baselines(dataset, normalize):
     V = np.asarray(dataset)
 
     # expected value across all reviews
@@ -224,34 +241,40 @@ def get_baselines(dataset):
             # needs to consider business average which I don't have.
             user_avgs[i] = (float(V[i].sum()) / np.count_nonzero(V[i])) - Vexpec
         else:
-            user_avgs[i] = 0 # we know nothing about this user; they had zero test-set ratings
+            rand = randint(1,9) / 1000.0
+            user_avgs[i] = rand # we know nothing about this user; they had zero test-set ratings
             cold_start_count += 1
             cold_start_rows.append(i)
 
     # combine our results to populate a baseline prediction
     for i in range(len(dataset)):
         for j in range(len(dataset[0])):
+
+            # if(V[i][j] > 5):
+            #     V[i][j] = 5
+            # else:
+            #     pass
+
             if(V[i][j] == 0):
                 # fill it with the expected value...
                 baseline_predict = Vexpec + biz_avgs[j] + user_avgs[i]
-                V[i][j] = round(baseline_predict, 4)
+                V[i][j] = baseline_predict
             else:
                 # we already had a real value; don't change it...
                 pass
 
-                # if(V[i][j] > 5):
-                #     V[i][j] = 5
-                # else:
-                #     pass
+    # normalize our data
+    arr_min = np.amin(V)
 
-                # if(V[i][j] < 1):
-                #     V[i][j] = 1
-                # else:
-                #     pass
+    const = abs(arr_min) + 0.0001 # avoid zero values
+    for i in range(len(dataset)):
+        for j in range(len(dataset[0])):
+            V[i][j] += const
+            V[i][j] = V[i][j] * normalize
 
     cold_start_percent = (cold_start_count * 1.0) / len(dataset)
 
-    return V, cold_start_percent, cold_start_rows
+    return V, cold_start_percent, cold_start_rows, const
 
 def split_maxtrix(dataset, t_height=0.25, t_width=0.4):
     """ t_height: test set height, t_width: test set width """
@@ -287,15 +310,18 @@ def main(args):
 
     t_height = 0.25
     t_width = 0.4
-    normalize = 1.0/20.0
+    normalize = 1.0/4000.0
+    latent_factors = 30
+    iterations = 100
 
     trainingset, testset, predict_count = split_maxtrix(dataset, t_height, t_width)
 
     testset = np.asarray(testset)
 
     # turn array into numpy array so we can apply their statistical methods
-    V, cold_start_percent, cold_start_rows = get_baselines(trainingset)
+    V, cold_start_percent, cold_start_rows, const = get_baselines(trainingset, normalize)
 
+    old_avg = V.mean()
     # NMF definition & performance:
     # http://arxiv.org/pdf/1205.3193.pdf <--NMF performed best on sparse data.
     # http://hebb.mit.edu/people/seung/papers/ls-lponm-99.pdf <-- NMF for facial recog
@@ -316,12 +342,25 @@ def main(args):
     # V = coo_matrix(V).tocsr()
     # V = np.arange(0.01,1.01,0.01).reshape(10,10)
 
-    W, H = nmf(V, 30)
-    # W, H = nmf(V)
-    X = W.dot(H)
-    # print X.tolist()
-    # print X.shape
+    predict = nmf(V, latent_factors, iterations, const, normalize)
+
+    # compare predictions to expected...
+    # this is a subset of the parent matrix... compare the overlapping values
+    # where a value exists in the testset
+    for i in range(len(testset)):
+        for j in range(len(testset[0])):
+            if(testset[i][j] > 0):
+                expected = testset[i][j]
+                predicted = predict[i][j]
+                
+                print 'expected'
+                print expected
+                print 'predicted'
+                print predicted
+                exit(0)
+
     exit(0)
+
 
 
 if __name__ == "__main__":
