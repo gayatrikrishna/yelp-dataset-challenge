@@ -80,7 +80,7 @@ def get_subset(dataset):
         return dataset
 
 def kmeans_graph_comparison(dataset, n, n_clusters, n_init):
-# turn array into numpy array so we can apply their statistical methods
+    # turn array into numpy array so we can apply their statistical methods
     X = np.asarray(dataset)
     # convert data to a scipy.sparse.coo_matrix & then to a csr matrix
     X = coo_matrix(X).tocsr()
