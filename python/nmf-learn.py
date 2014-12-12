@@ -46,7 +46,7 @@ def get_fulldata_path(num):
         '../data/arff/full_data/yelp_academic_dataset_checkin.arff',
         '../data/arff/full_data/yelp_academic_dataset_review.arff',
         '../data/arff/full_data/yelp_academic_dataset_tip.arff',
-        '../data/arff/_review_matrix/user_review_matrix_jason_big.arff',
+        '../data/arff/_review_matrix/user_review_matrix_final2.arff',
         # '../data/arff/_review_matrix/user_review_matrix_jason_massive.arff',
         ]
 
@@ -193,6 +193,9 @@ def nmf(V, latent_factors, iterations=100, const=0, normalize=0):
     # get the dotproduct with our predictions... 
     X = W.dot(H)
 
+    return denormalize(X, normalize, const)
+
+def denormalize(X, normalize, const):
     N, M = X.shape
     # X = X.tolist()
     for i in range(N):
@@ -206,7 +209,6 @@ def nmf(V, latent_factors, iterations=100, const=0, normalize=0):
                 pass
 
     return X
-
 
 # get a matrix with our baseline estimates built-in
 def get_baselines(dataset, normalize):
@@ -226,6 +228,8 @@ def get_baselines(dataset, normalize):
         for j in range(len(dataset)):
             if(X[i][j] > 0):
                 biz_counts[i] += 1
+            else:
+                pass
 
     for i in range(len(biz_avgs)):
         if(biz_counts[i] == 0):
@@ -325,9 +329,55 @@ def display_results(testset, predict, is_baseline = False):
     else:
         print "baseline: RMSE = %f MAE = %f " % (math.sqrt(totalSum/numTest), totalMAE/numTest)
 
+def generic_baseline(dataset, normalize):
+    V = np.asarray(dataset)
+
+    # expected value across all reviews
+    Vexpec = V.sum() / np.count_nonzero(V)
+    row, col = V.shape
+
+    # get user averages; there should always be at least one rating
+    cold_start_count = 0
+    user_avgs = [0] * len(dataset)
+    cold_start_rows = []
+    for i in range(len(dataset)):
+        nz_count = np.count_nonzero(V[i])
+        if(nz_count > 0):
+            # needs to consider business average which I don't have.
+            user_avgs[i] = (float(V[i].sum()) / np.count_nonzero(V[i])) - Vexpec
+        else:
+            rand = randint(1,9) / 1000.0
+            user_avgs[i] = rand # we know nothing about this user; they had zero test-set ratings
+            cold_start_count += 1
+            cold_start_rows.append(i)
+
+    # combine our results to populate a baseline prediction
+    for i in range(len(dataset)):
+        for j in range(len(dataset[0])):
+            if(V[i][j] == 0):
+                # fill it with the expected value...
+                baseline_predict = Vexpec + user_avgs[i]
+                V[i][j] = baseline_predict
+            else:
+                # we already had a real value; don't change it...
+                pass
+
+    # normalize our data
+    arr_min = np.amin(V)
+
+    const = abs(arr_min) + 0.000001 # avoid zero values
+    for i in range(len(dataset)):
+        for j in range(len(dataset[0])):
+            V[i][j] += const
+            V[i][j] = V[i][j] * normalize
+
+    cold_start_percent = (cold_start_count * 1.0) / len(dataset)
+
+    return V, cold_start_percent, cold_start_rows, const
+
 def main(args):
-    # attributes, dataset = user_reviews_full()
-    attributes, dataset = user_reviews_subset()
+    attributes, dataset = user_reviews_full()
+    # attributes, dataset = user_reviews_subset()
 
     t_height = 0.25
     t_width = 0.4
@@ -341,10 +391,12 @@ def main(args):
     testset = np.asarray(testset)
 
     # turn array into numpy array so we can apply their statistical methods
-    V, cold_start_percent, cold_start_rows, const = get_baselines(trainingset, normalize)
+    # V, cold_start_percent, cold_start_rows, const = get_baselines(trainingset, normalize)
+    V, cold_start_percent, cold_start_rows, const = generic_baseline(trainingset, normalize)
 
-    baseline = copy.deepcopy(V)
-    old_avg = V.mean()
+    generic = copy.deepcopy(trainingset)
+    Vb, bcold_start_percent, bcold_start_rows, bconst = get_baselines(generic, normalize)
+
     # NMF definition & performance:
     # http://arxiv.org/pdf/1205.3193.pdf <--NMF performed best on sparse data.
     # http://hebb.mit.edu/people/seung/papers/ls-lponm-99.pdf <-- NMF for facial recog
@@ -365,10 +417,11 @@ def main(args):
     # V = coo_matrix(V).tocsr()
     # V = np.arange(0.01,1.01,0.01).reshape(10,10)
 
+    print 'latent factors: %d' % (latent_factors)
     predict = nmf(V, latent_factors, iterations, const, normalize)
 
     # display baseline results
-    display_results(testset, baseline, is_baseline=True)
+    display_results(testset, denormalize(Vb, normalize, bconst), is_baseline=True)
 
     # display overall results
     display_results(testset, predict)
