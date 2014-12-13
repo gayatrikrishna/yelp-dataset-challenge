@@ -16,7 +16,7 @@ from datetime import datetime
 from scipy.sparse import coo_matrix
 from random import shuffle
 from random import randint
-np.random.seed(0) #@todo remove this later.......
+# np.random.seed(0) #@todo remove this later.......
 
 load_data = helpers.load_data
 get_attributes = helpers.get_attributes
@@ -383,19 +383,18 @@ def main(args):
     t_width = 0.4
     normalize = 1.0/100.0
     # normalize = 1.0
-    latent_factors = 30
+    latent_factors = 20
     iterations = 100
 
     trainingset, testset, predict_count = split_maxtrix(dataset, t_height, t_width)
-
     testset = np.asarray(testset)
 
     # turn array into numpy array so we can apply their statistical methods
     # V, cold_start_percent, cold_start_rows, const = get_baselines(trainingset, normalize)
-    V, cold_start_percent, cold_start_rows, const = generic_baseline(trainingset, normalize)
+    V, cold_start_percent, cold_start_rows, const = get_baselines(trainingset, normalize)
 
-    generic = copy.deepcopy(trainingset)
-    Vb, bcold_start_percent, bcold_start_rows, bconst = get_baselines(generic, normalize)
+    # generic = copy.deepcopy(trainingset)
+    # Vb, bcold_start_percent, bcold_start_rows, bconst = get_baselines(generic, normalize)
 
     # NMF definition & performance:
     # http://arxiv.org/pdf/1205.3193.pdf <--NMF performed best on sparse data.
@@ -421,7 +420,7 @@ def main(args):
     predict = nmf(V, latent_factors, iterations, const, normalize)
 
     # display baseline results
-    display_results(testset, denormalize(Vb, normalize, bconst), is_baseline=True)
+    # display_results(testset, denormalize(Vb, normalize, bconst), is_baseline=True)
 
     # display overall results
     display_results(testset, predict)
