@@ -76,19 +76,19 @@ def get_baseline(data):
     return baseline, counts
 
 def user_reviews_full():
-    print get_fulldata_path(6)
+    # print get_fulldata_path(6)
     return user_reviews_inner(get_fulldata_path(6))
 
 def user_reviews_full_old():
-    print get_fulldata_path(5)
+    # print get_fulldata_path(5)
     return user_reviews_inner(get_fulldata_path(5))
 
 def user_reviews_subset():
-    print get_subsets_path(5)
+    # print get_subsets_path(5)
     return user_reviews_inner(get_subsets_path(5))
 
 def user_reviews_inner(path):
-    print 'Running user arff subset'
+    # print 'Running user arff subset'
 
     arff_file = load_data(path)
     # print 'Running user arff full_data'
@@ -169,7 +169,7 @@ def factorize(V, L, iterations=100):
         -W is tall & skinny (compared to V)
         -H is short & wide  (compared to V)
         -Based on local divergence optima, we will decompose V into WH
-        -L latent factors / compression
+        -L compression
     """
 
     Vexpec = V.mean() #expected value of a matrix entry
@@ -198,9 +198,9 @@ def factorize(V, L, iterations=100):
 
     return W, H
 
-def nmf(V, latent_factors, iterations=100, const=0, normalize=0):
+def nmf(V, compression, iterations=100, const=0, normalize=0):
     # factorize into W & H
-    W, H = factorize(V, latent_factors, iterations)
+    W, H = factorize(V, compression, iterations)
     
     # get the dotproduct with our predictions... 
     X = W.dot(H)
@@ -259,7 +259,6 @@ def get_baselines(dataset, normalize):
             # needs to consider business average which I don't have.
             user_avgs[i] = (float(V[i].sum()) / np.count_nonzero(V[i])) - Vexpec
         else:
-            # rand = randint(1,9) / 1000.0
             user_avgs[i] = 0 # we know nothing about this user; they had zero test-set ratings
             cold_start_count += 1
             cold_start_rows.append(i)
@@ -276,6 +275,7 @@ def get_baselines(dataset, normalize):
             if(V[i][j] == 0):
                 # fill it with the expected value...
                 baseline_predict = Vexpec + biz_avgs[j] + user_avgs[i]
+                # baseline_predict = Vexpec + user_avgs[i]
                 V[i][j] = baseline_predict
             else:
                 # we already had a real value; don't change it...
@@ -300,9 +300,13 @@ def split_maxtrix(dataset, t_height=0.25, t_width=0.4):
     """ Withold 40 percent of the ratings for 25 percent of the users """
     """ (a 10 percent trainingset) """
     trainingset = copy.deepcopy(dataset)
+    ht = len(dataset)
+    wt = len(dataset[0])
+    total_size = float(ht * wt)
     test_size = int(round(t_height * float(len(dataset))))
     num_cols = int(round(t_width * (len(dataset[0]))))
 
+    # print 'test set height:%d width:%d, size: %.1f%%' % (test_size, num_cols, 100 * (test_size * num_cols)/total_size )
     # build predictions & remove testset from trainingset
     testset = []
     predict_count = 0
@@ -495,25 +499,25 @@ def run_kmeans(V, trainingset, attributes, testset, const, normalize):
     X = np.asarray(X)
     return denormalize(X, normalize, const)
 
-def main(args):
-    # attributes, dataset = user_reviews_full_old()
+def main(t_height, t_width, iterations, compression):
     attributes, dataset = user_reviews_full()
     # attributes, dataset = user_reviews_subset()
 
-    t_height = 0.25
-    t_width = 0.5
+    # t_height = 0.25
+    # t_width = 0.5
+
     # normalize = 1.0/100.0
     normalize = 1.0
     height = len(dataset)
     width = len(dataset[0])
     min_ = min(height,width)
-    # latent_factors = int(round(min_ / 3.3))
-    latent_factors = 5
+    # compression = int(round(min_ / 3.3))
+    # compression = 4
 
-    # print 'number of latent_factors: %d' % (latent_factors)
+    # print 'number of compression: %d' % (compression)
     # exit(0)
     # iterations = 75
-    iterations = args
+    # iterations = 100
     print 'iterations: %d' % (iterations)
 
     trainingset, testset, predict_count = split_maxtrix(dataset, t_height, t_width)
@@ -532,7 +536,7 @@ def main(args):
     # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
     # COMPARISON TO SCIKIT LEARN NMF!
     # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
-    # nmf_model = sk_nmf(n_components=latent_factors, init='nndsvd', nls_max_iter=100)
+    # nmf_model = sk_nmf(n_components=compression, init='nndsvd', nls_max_iter=100)
     # W = nmf_model.fit_transform(V)
     # H = nmf_model.components_
     # X = W.dot(H)
@@ -567,11 +571,11 @@ def main(args):
     # display_results(testset, denormalize(Vb, normalize, bconst), is_baseline=True)
     # display_results(testset, kpredict)
 
-    print 'latent factors: %d' % (latent_factors)
-    predict = nmf(V, latent_factors, iterations, const, normalize)
+    print 'compression: %d' % (compression)
+    predict = nmf(V, compression, iterations, const, normalize)
 
     # display baseline results
-    display_results(testset, denormalize(Vb, normalize, bconst), is_baseline=True)
+    # display_results(testset, denormalize(Vb, normalize, bconst), is_baseline=True)
 
     # display overall results
     display_results(testset, predict)
@@ -583,20 +587,23 @@ def main(args):
     # compare to baseline.......
 
 def outer(args):
-    lfac = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 150, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
-    for l in lfac:
-        main(l)
+    iterations = [1, 5, 10, 25, 30, 40, 50, 75, 100, 150, 200, 300, 500, 750, 1000, 2000]
+    # test sets: 60%, 50%, 25%, 20%, 10%
+    # train ses: 40%, 50%, 75%, 80%, 90%
+    t_width  = [0.7 , 0.7, 0.7 , 0.7 , 0.7 ] # test set width
+    t_height = [0.86, 0.7, 0.35, 0.28, 0.14] # test set height
+
+    compression = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100]
+
+    # for i in range(len(t_width)):
+    #     main(t_height[i], t_width[i], 200, 4)
+
+    # for i in range(len(iterations)):
+    #     main(t_height[1], t_width[1], iterations[i], 4)
+
+    for i in range(len(compression)):
+        main(t_height[1], t_width[1], 200, compression[i])
+
 
 if __name__ == "__main__":
     outer(sys.argv)
-
-
-
-
-
-
-
-
-
-
-
