@@ -12,6 +12,8 @@ import sys, time, helpers, copy, math
 import pylibmc # use memcached to hold our dataset in memory because it loads way too slow otherwise.
 import numpy as np
 from sklearn.cluster import KMeans
+from sklearn.decomposition import NMF as sk_nmf
+from sklearn.decomposition import ProjectedGradientNMF
 # http://matplotlib.org/users/pyplot_tutorial.html
 from datetime import datetime
 from scipy.sparse import coo_matrix
@@ -45,7 +47,7 @@ def get_fulldata_path(num):
         '../data/arff/full_data/yelp_academic_dataset_review.arff',
         '../data/arff/full_data/yelp_academic_dataset_tip.arff',
         '../data/arff/_review_matrix/user_review_matrix_jason_big.arff',
-        '../data/arff/_review_matrix/user_review_matrix_final2.arff',
+        '../data/arff/final/user_review_matrix.arff',
         # '../data/arff/_review_matrix/user_review_matrix_jason_massive.arff',
         ]
 
@@ -74,12 +76,15 @@ def get_baseline(data):
     return baseline, counts
 
 def user_reviews_full():
+    print get_fulldata_path(6)
     return user_reviews_inner(get_fulldata_path(6))
 
 def user_reviews_full_old():
+    print get_fulldata_path(5)
     return user_reviews_inner(get_fulldata_path(5))
 
 def user_reviews_subset():
+    print get_subsets_path(5)
     return user_reviews_inner(get_subsets_path(5))
 
 def user_reviews_inner(path):
@@ -491,23 +496,25 @@ def run_kmeans(V, trainingset, attributes, testset, const, normalize):
     return denormalize(X, normalize, const)
 
 def main(args):
-    attributes, dataset = user_reviews_full_old()
-    # attributes, dataset = user_reviews_full()
+    # attributes, dataset = user_reviews_full_old()
+    attributes, dataset = user_reviews_full()
     # attributes, dataset = user_reviews_subset()
 
     t_height = 0.25
     t_width = 0.5
-    normalize = 1.0/100.0
-    # normalize = 1.0
+    # normalize = 1.0/100.0
+    normalize = 1.0
     height = len(dataset)
     width = len(dataset[0])
     min_ = min(height,width)
-    latent_factors = round(min_ / 3.3)
+    # latent_factors = int(round(min_ / 3.3))
+    latent_factors = 5
 
     # print 'number of latent_factors: %d' % (latent_factors)
     # exit(0)
     # iterations = 75
-    iterations = 100
+    iterations = args
+    print 'iterations: %d' % (iterations)
 
     trainingset, testset, predict_count = split_maxtrix(dataset, t_height, t_width)
     testset = np.asarray(testset)
@@ -521,6 +528,19 @@ def main(args):
 
     generic = copy.deepcopy(trainingset)
     Vb, bcold_start_percent, bcold_start_rows, bconst = get_baselines(generic, normalize)
+
+    # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    # COMPARISON TO SCIKIT LEARN NMF!
+    # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+    # nmf_model = sk_nmf(n_components=latent_factors, init='nndsvd', nls_max_iter=100)
+    # W = nmf_model.fit_transform(V)
+    # H = nmf_model.components_
+    # X = W.dot(H)
+
+    # predict = denormalize(X, normalize, const)
+    # display_results(testset, denormalize(Vb, normalize, bconst), is_baseline=True)
+    # display_results(testset, predict)
+    # XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
     # NMF definition & performance:
     # http://arxiv.org/pdf/1205.3193.pdf <--NMF performed best on sparse data.
@@ -544,6 +564,7 @@ def main(args):
 
     # print 'Kmeans'
     # kpredict = run_kmeans(V, trainingset, attributes, testset, const, normalize)
+    # display_results(testset, denormalize(Vb, normalize, bconst), is_baseline=True)
     # display_results(testset, kpredict)
 
     print 'latent factors: %d' % (latent_factors)
@@ -561,9 +582,16 @@ def main(args):
 
     # compare to baseline.......
 
+def outer(args):
+    lfac = [1, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 60, 70, 80, 90, 100, 150, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
+    for l in lfac:
+        main(l)
 
 if __name__ == "__main__":
-    main(sys.argv)
+    outer(sys.argv)
+
+
+
 
 
 
