@@ -16,6 +16,8 @@ class CollaborativeFilter:
 	numTraining = 0
 	numTest = 0
 	meanRating = 0.0
+	userMean = {}
+	itemMean = {}
 cf = CollaborativeFilter
 
 def loadFromFiles(args):
@@ -24,13 +26,14 @@ def loadFromFiles(args):
 	cf.transposeTrainingSet = transpose(cf.trainingSet)
 	cf.normalizedUserSet = cf.trainingSet
 	cf.normalizedItemSet = cf.transposeTrainingSet
+	cf.meanRating = getGlobalMean(cf.trainingSet)
 
 def initialize():
 	cf.businesses = set()
 	cf.users = set(cf.trainingSet.keys())
 	for user in cf.trainingSet:
 		cf.businesses = cf.businesses | set(cf.trainingSet[user].keys())
-	print "Data sparsity",calcDataSparsity()
+	#print "Data sparsity",calcDataSparsity()
 	
 def normalizeUserData():
 	userMean = getUserMean(cf.normalizedUserSet)
@@ -44,14 +47,23 @@ def normalizeItemData():
 		for user in cf.normalizedItemSet[bus]:
 			cf.normalizedItemSet[bus][user] = cf.normalizedItemSet[bus][user] - itemMean[bus]
 
+def getMeanValue(user,bus):
+	if bus in cf.itemMean:
+		return cf.itemMean[bus]
+	elif user in cf.userMean:
+		return cf.userMean[user]
+	else:
+		return cf.meanRating
+
 def calcUserUserCF(k):
 	#print cf.trainingSet
 	#normalizeUserData()
 	# get the global mean to subsititute for those users who are only in the test set but not in the training set.
 	userMean,cf.meanRating = getGlobalMean(cf.trainingSet)
+	itemMean = getItemMean(cf.transposeTrainingSet)
 	#print "normalizedUserSet",cf.normalizedUserSet
 	#print cf.meanRating,"number of users",len(cf.users),"entries in normalized user set",len(cf.normalizedUserSet)
-	userDistances = userCosineDistance(cf.users,cf.trainingSet)#cf.normalizedUserSet)
+	userDistances = userCosineDistance(cf.users,cf.trainingSet)#cf.normalizedUserSet)#cf.trainingSet)#cf.normalizedUserSet)
 	for user in cf.testSet:
 		for bus in cf.testSet[user]:
 			n = 0
@@ -59,8 +71,8 @@ def calcUserUserCF(k):
 			weighted_average = 0.0
 			similarityValues = []
 			if user not in userDistances:
-				cf.testSet[user][bus].insert(1,cf.meanRating)
-				cf.testSet[user][bus].insert(2,cf.meanRating)
+				cf.testSet[user][bus].insert(1,getMeanValue(user,bus))
+				cf.testSet[user][bus].insert(2,getMeanValue(user,bus))
 			else:
 				for nearestUser in sorted(userDistances[user], key=userDistances[user].get, reverse=True):
 					if bus in cf.trainingSet[nearestUser]:
@@ -72,12 +84,12 @@ def calcUserUserCF(k):
 							break
 				if n==0:
 					#cf.testSet[user][bus].insert(1,cf.meanRating)
-					cf.testSet[user][bus].insert(1,cf.meanRating)
-					cf.testSet[user][bus].insert(2,cf.meanRating)
+					cf.testSet[user][bus].insert(1,getMeanValue(user,bus))
+					cf.testSet[user][bus].insert(2,getMeanValue(user,bus))
 				else:
 					cf.testSet[user][bus].insert(1,average/n)
 					if sum(similarityValues) == 0:
-						cf.testSet[user][bus].insert(2,cf.meanRating)
+						cf.testSet[user][bus].insert(2,getMeanValue(user,bus))
 					else:
 						cf.testSet[user][bus].insert(2,weighted_average/sum(similarityValues))
 	print "RMSE with User-User Collaborative Filtering",evaluateRMSE(cf.testSet,cf.numTest)
@@ -85,6 +97,7 @@ def calcUserUserCF(k):
 
 def calcItemItemCF(k):
 	#normalizeItemData()
+	itemMean = getItemMean(cf.transposeTrainingSet)
 	businessDistances = itemCosineDistance(cf.businesses,cf.transposeTrainingSet)
 	for user in cf.testSet:
 		for bus in cf.testSet[user]:
@@ -95,8 +108,8 @@ def calcItemItemCF(k):
 			# if the business is not present in the training set
 			if bus not in businessDistances:
 				#cf.testSet[user][bus].insert(1, cf.meanRating)
-				cf.testSet[user][bus].insert(1,cf.meanRating)
-				cf.testSet[user][bus].insert(2,cf.meanRating)
+				cf.testSet[user][bus].insert(1,getMeanValue(user,bus))
+				cf.testSet[user][bus].insert(2,getMeanValue(user,bus))
 			else:
 				for nearestBusiness in sorted(businessDistances[bus], key=businessDistances[bus].get, reverse=True):
 					if user in cf.transposeTrainingSet[nearestBusiness]:
@@ -108,12 +121,12 @@ def calcItemItemCF(k):
 							break
 				if n==0:
 					#cf.testSet[user][bus].insert(1,cf.meanRating)
-					cf.testSet[user][bus].insert(1,cf.meanRating)
-					cf.testSet[user][bus].insert(2,cf.meanRating)
+					cf.testSet[user][bus].insert(1,getMeanValue(user,bus))
+					cf.testSet[user][bus].insert(2,getMeanValue(user,bus))
 				else:
 					cf.testSet[user][bus].insert(1,average/n)
 					if sum(similarityValues) == 0:
-						cf.testSet[user][bus].insert(2,cf.meanRating)
+						cf.testSet[user][bus].insert(2,getMeanValue(user,bus))
 					else:
 						cf.testSet[user][bus].insert(2,weighted_average/sum(similarityValues))
 	print "Item-Item Collaborative Filtering",evaluateRMSE(cf.testSet,cf.numTest)
@@ -124,7 +137,7 @@ def createParser():
 	parser.add_argument("-r", default="reviews.arff", help="File having reviews")
 	parser.add_argument("-train", default="training.arff", help="Training Set")
 	parser.add_argument("-test", default="test.arff", help="Test Set")
-	parser.add_argument("-k", default=4, help="Number of nearest neighbors")
+	parser.add_argument("-k", default=10, help="Number of nearest neighbors")
 	return parser.parse_args()
 
 if __name__ == '__main__':
