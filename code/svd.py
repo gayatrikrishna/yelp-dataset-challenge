@@ -16,6 +16,7 @@ class SVD:
 	userMap = {}
 	busMap = {}
 	trainingSet = {}
+	transposeTrainingSet = {}
 	testSet = {}
 	averageUserMap = {}
 	averageBusMap = {}
@@ -65,30 +66,33 @@ def initialize():
 	for bus in sv.busMap:
 		bus_id = sv.busMap[bus]
 		sv.averageBusMap[bus_id] = float(sv.averageBusMap[bus_id])/sv.numItems
-	print sv.averageBusMap
+	
+	#print sv.averageBusMap
 	imputeMissingData()
 
 # imputes the missing data taking the row and column averages
 def imputeMissingData():
+	userMean,meanRating = getGlobalMean(sv.trainingSet)
 	for i in xrange(0,sv.numUsers):
 		sv.rowMean[i] = 0.0
 		for j in xrange(0,sv.numItems):
 			# impute missing values with column average (item average)
 			#print "i=",i,"j=",j,"M[i][j]=",sv.M[i][j]
 			if sv.M[i][j] == None:
-				sv.M[i][j] = sv.averageBusMap[j]
+				sv.M[i][j] = meanRating #sv.averageBusMap[j]
 			sv.rowMean[i] += sv.M[i][j]
 		sv.rowMean[i] = float(sv.rowMean[i]/sv.numUsers)
 	# obtain row centered matrix by subtracting the mean from each entry (normalizing)
 	for i in xrange(0,sv.numUsers):
 		for j in xrange(0,sv.numItems):
 			sv.M[i][j] = sv.M[i][j] - sv.rowMean[i]
-	print sv.M
+	
 	sv.Mfinal = np.matrix(sv.M)
 
 def loadIntoMatrix(fileName):
 	sv.trainingSet,sv.numTraining = loadFromArff(sv.args.train,False)
 	sv.testSet,sv.numTest = loadFromArff(sv.args.test,True)	
+	sv.transposeTrainingSet = transpose(sv.trainingSet)
 
 def computeSVD():
 	imputeMissingData()
@@ -101,6 +105,7 @@ def computeSVD():
 		e += S[c]
 		c += 1
 	# get the reduced matrices
+
 	Ured = np.matrix(np.copy(U)[:,0:c])
 	Sred = np.copy(S)[0:c]
 	Vred = np.matrix(np.copy(V)[0:c,:])
@@ -109,13 +114,18 @@ def computeSVD():
 
 def evaluateOnTest():
 	userMean,meanRating = getGlobalMean(sv.trainingSet)
+	itemMean = getItemMean(sv.transposeTrainingSet)
 	for user in sv.testSet:
 		if user in sv.userMap:
 			i = sv.userMap[user]
 		for bus in sv.testSet[user]:
 			if bus in sv.busMap:
 				j = sv.busMap[bus]
-			if user not in sv.userMap or bus not in sv.busMap:
+			if user in sv.userMap and bus not in sv.busMap:
+				sv.testSet[user][bus].insert(1,userMean[user])#meanRating)
+			elif bus in sv.busMap and user not in sv.userMap:
+				sv.testSet[user][bus].insert(1,itemMean[bus])
+			elif user not in sv.userMap and bus not in sv.busMap:
 				sv.testSet[user][bus].insert(1,meanRating)
 			else:
 				sv.testSet[user][bus].insert(1,sv.rowMean[sv.userMap[user]]+sv.Ared[i,j])
